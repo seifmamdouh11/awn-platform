@@ -15,6 +15,7 @@ import {
 import { FaCalendarAlt } from "react-icons/fa";
 import volunteerApplicationsTranslations from "@/app/translations/volunteerOpportunityDetailsTranslations";
 
+
 type ApplicationStatus =
   | "pending"
   | "accepted"
@@ -178,44 +179,44 @@ export default function VolunteerApplicationsPage() {
   ];
 
   const handleWithdraw = async (applicationId: number) => {
-  const result = await Swal.fire({
-    title: t.withdrawConfirmTitle,
-    text: t.withdrawConfirmText,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: t.withdrawConfirmButton,
-    cancelButtonText: t.withdrawCancelButton,
-    confirmButtonColor: "#dc2626",
-  });
-
-  if (!result.isConfirmed) return;
-
-  try {
-    setWithdrawingId(applicationId);
-
-    await api.put(`/volunteer-applications/${applicationId}/withdraw`, {});
-
-    await fetchApplications();
-
-    await Swal.fire({
-      icon: "success",
-      title: t.withdrawSuccessTitle,
-      text: t.withdrawSuccessText,
-      confirmButtonText: "OK",
+    const result = await Swal.fire({
+      title: t.withdrawConfirmTitle,
+      text: t.withdrawConfirmText,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: t.withdrawConfirmButton,
+      cancelButtonText: t.withdrawCancelButton,
+      confirmButtonColor: "#dc2626",
     });
-  } catch (err) {
-    console.error(err);
 
-    await Swal.fire({
-      icon: "error",
-      title: t.withdrawErrorTitle,
-      text: t.withdrawErrorText,
-      confirmButtonText: "OK",
-    });
-  } finally {
-    setWithdrawingId(null);
-  }
-};
+    if (!result.isConfirmed) return;
+
+    try {
+      setWithdrawingId(applicationId);
+
+      await api.put(`/volunteer-applications/${applicationId}/withdraw`, {});
+
+      await fetchApplications();
+
+      await Swal.fire({
+        icon: "success",
+        title: t.withdrawSuccessTitle,
+        text: t.withdrawSuccessText,
+        confirmButtonText: "OK",
+      });
+    } catch (err) {
+      console.error(err);
+
+      await Swal.fire({
+        icon: "error",
+        title: t.withdrawErrorTitle,
+        text: t.withdrawErrorText,
+        confirmButtonText: "OK",
+      });
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
   const renderApplicationCard = (item: ApplicationItem) => {
     const withdrawable = canWithdraw(item.status);
     const currentStatusLabel =
@@ -233,10 +234,9 @@ export default function VolunteerApplicationsPage() {
         <div className="p-6 md:p-8">
           <div className="mb-5 flex flex-wrap items-center gap-3">
             <span
-              className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${
-                statusClassMap[item.status] ||
+              className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${statusClassMap[item.status] ||
                 "border-foreground/10 bg-foreground/5 text-foreground/70"
-              }`}
+                }`}
             >
               {currentStatusLabel}
             </span>
@@ -336,11 +336,10 @@ export default function VolunteerApplicationsPage() {
                 }
                 onClick={() => handleWithdraw(item.id)}
                 disabled={withdrawingId === item.id}
-                className={`inline-flex min-w-[185px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition ${
-                  withdrawingId === item.id
+                className={`inline-flex min-w-[185px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition ${withdrawingId === item.id
                     ? "cursor-not-allowed border border-red-500/20 bg-red-500/10 text-red-400"
                     : "border border-red-500/20 bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white"
-                }`}
+                  }`}
               >
                 {withdrawingId === item.id ? (
                   <>

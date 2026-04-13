@@ -1,21 +1,23 @@
-"use client";
-import VolunteerNavbar from '@/app/components/VolunteerLayout/VolunteerNavbar/VolunteerNavbar';
-import { useLang } from '@/app/Hooks/LangHook/LangHook';
 import React from 'react'
+import VolunteerClientLayout from './VolunteerClientLayout';
+import { Metadata } from 'next';
 type Props = {
     children: React.ReactNode
 }
+
+export const metadata: Metadata = {
+    title: "Volunteer",
+    description: "Awn platform for volunteering and community service",
+};
+
 export default function VolunteerLayout({ children }: Props) {
-    const { lang } = useLang()
-    const isRTL = lang === "ar"
+
 
     return (
         <>
-            <VolunteerNavbar />
-            {/* on desktop push content past the sidebar; on mobile push below the topbar */}
-            <div className={`pt-16 md:pt-0 ${isRTL ? "md:mr-64" : "md:ml-64"}`}>
+            <VolunteerClientLayout>
                 {children}
-            </div>
+            </VolunteerClientLayout>
         </>
     )
 }
