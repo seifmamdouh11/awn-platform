@@ -3,24 +3,99 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --primary: #F5A623;
+  --primary-hover: #E6951A;
+  --primary-dark: #CC7F14;
+
+  --muted: #555555;
+  --soft-bg: #FFF7E6;
 }
+
+html.dark {
+  --background: #1F1F1F;
+  --foreground: #EDEDED;
+
+  --soft-bg: #2A2A2A;
+}
+
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-en), ui-sans-serif, system-ui, sans-serif;
 }
+
+html[dir="rtl"] body {
+  font-family: var(--font-ar), ui-sans-serif, system-ui, sans-serif;
+}
+
+.scroll {
+  width: 100% !important;
+  z-index: 10000;
+  padding: 0;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
+  background: var(--background);
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-item a::after {
+  content: "";
+  width: 0%;
+  height: 2px;
+  position: absolute;
+  background-color: var(--foreground);
+  right: 0;
+  left: 0;
+  bottom: 0;
+  margin: auto;
+  transition: width 0.35s linear;
+}
+
+.nav-item a:hover::after {
+  width: 100%;
+}
+
+/* hide scrollbar but keep scroll */
+.no-scrollbar {
+  overflow: auto;
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+
