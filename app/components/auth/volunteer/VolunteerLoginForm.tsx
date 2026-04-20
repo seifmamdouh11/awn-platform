@@ -22,6 +22,12 @@ export default function VolunteerLoginForm() {
 
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [realStats, setRealStats] = useState<{ opportunities: number; volunteers: number; events: number; partners: number } | null>(null);
+
+  React.useEffect(() => {
+    api.get("/public-stats").then((res) => setRealStats(res.data)).catch(() => {});
+  }, []);
+
   const dir = lang === "ar" ? "rtl" : "ltr";
   const isRTL = lang === "ar";
 
@@ -127,12 +133,24 @@ export default function VolunteerLoginForm() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.5 }}
           >
-            {t.stats.map((stat, i) => (
-              <div key={i} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                <p className="text-2xl font-black text-[#febc5a]">{stat.value}</p>
-                <p className="text-xs text-white/50 mt-1">{stat.label}</p>
-              </div>
-            ))}
+            {t.stats.map((stat, i) => {
+              let displayValue: string = stat.value;
+              if (realStats) {
+                let val = 0;
+                if (i === 0) val = realStats.opportunities;
+                if (i === 1) val = realStats.volunteers;
+                if (i === 2) val = realStats.events;
+                if (i === 3) val = realStats.partners;
+                displayValue = lang === "ar" ? `+${val}` : `${val}+`;
+              }
+
+              return (
+                <div key={i} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+                  <p className="text-2xl font-black text-[#febc5a]">{displayValue}</p>
+                  <p className="text-xs text-white/50 mt-1">{stat.label}</p>
+                </div>
+              );
+            })}
           </motion.div>
         </div>
 
@@ -328,13 +346,13 @@ const translations = {
     loginFailed: "فشل تسجيل الدخول",
     ok: "حسناً",
     underReviewTitle: "قيد المراجعة",
-    underReviewText: "حسابك لسه تحت المراجعة. جرّب تاني لاحقًا.",
+    underReviewText: "حسابك لا يزال قيد المراجعة. يرجى المحاولة لاحقاً.",
     blockedTitle: "الحساب محظور",
-    blockedText: "تم حظر حسابك. تواصل مع الدعم.",
+    blockedText: "تم حظر حسابك. يرجى التواصل مع الدعم.",
     invalidCredentials: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
     missingFieldsTitle: "بيانات ناقصة",
-    missingFieldsText: "من فضلك اكتب البريد الإلكتروني وكلمة المرور.",
-    tryAgain: "حاول مرة أخرى لاحقًا.",
+    missingFieldsText: "يرجى إدخال البريد الإلكتروني وكلمة المرور.",
+    tryAgain: "يرجى المحاولة لاحقاً.",
     goHome: "العودة للرئيسية",
     sessionSuspendedTitle: "انتهت الجلسة",
     sessionSuspendedText: "حسابك لم يعد نشطاً حالياً. تم تسجيل خروجك لأسباب أمنية.",

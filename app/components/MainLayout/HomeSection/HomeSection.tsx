@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useLang } from "@/app/Hooks/LangHook/LangHook";

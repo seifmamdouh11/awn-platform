@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AWN - عون 🌟
+### A Premium, Minimalist Platform for Purposeful Volunteering
+**منصة عون - للعمل التطوعي المتكامل والأثر المستدام**
 
-## Getting Started
+---
 
-First, run the development server:
+## 📖 Overview | نظرة عامة
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+**AWN (عون)** is more than just a volunteer platform; it’s a premium, high-impact ecosystem designed to bridge the gap between passionate volunteers and impactful organizations. Built with a minimalist, state-of-the-art aesthetic, AWN focuses on creating a seamless, professional experience for both individuals and companies.
+
+**عون** هي أكثر من مجرد منصة للتطوع؛ إنها منظومة متكاملة مصممة لسد الفجوة بين المتطوعين المتحمسين والمؤسسات المؤثرة. تم بناء "عون" بهوية بصرية راقية وبسيطة، تركز على تقديم تجربة احترافية وسلسة لكل من المتطوعين والشركات.
+
+---
+
+## ✨ Key Features | المميزات الرئيسية
+
+### 🧑‍💻 For Volunteers | للمتطوعين
+- **Bento UI Profile**: A premium, grid-based profile that showcases skills, achievements, and recent activity at a glance.
+- **Smart Subscription System**: Multiple tiers (PRO, ELITE) with dynamic billing (Monthly/Annual) and smart upgrade paths.
+- **Wallet & Funds**: A centralized wallet system to manage rewards, deposits, and financial transactions.
+- **Verified Reviews**: Earn credit and build your reputation through verified ratings from organizations.
+- **Localization**: Full support for Arabic and English with a perfectly adapted RTL/LTR layout.
+
+### 🏢 For Companies | للشركات
+- **Opportunity Management**: Create and manage impact-driven volunteering events with a professional interface.
+- **Applicant Tracking**: Efficiently review and manage volunteer applications through a streamlined dashboard.
+- **Dynamic Analytics**: Real-time insights into volunteer impact, event success, and engagement metrics.
+- **Rating System**: Provide valuable feedback to volunteers and build a trusted community.
+
+---
+
+## 🛠️ Tech Stack | التقنيات المستخدمة
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Icons**: Lucide React & FontAwesome 6
+- **UI Components**: SweetAlert2, Glassmorphism design tokens, Custom Mesh Gradients.
+
+---
+
+## 📁 Project Structure | هيكل المشروع
+
+```text
+awn-frontend/
+├── app/                  # Next.js App Router root
+│   ├── (protectedLayout) # Role-based layouts (Volunteer/Company/Admin)
+│   ├── Context/          # Global state management
+│   ├── Hooks/            # Custom reusable logic (Theme, Lang, etc.)
+│   ├── components/       # Reusable UI components
+│   ├── translations/     # Localization dictionary (AR/EN)
+│   └── utils/            # API wrappers and helper functions
+├── public/               # Static assets & branding
+└── postcss.config.mjs    # Modern CSS processing
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Getting Started | نظام البدء
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/your-repo/awn-frontend.git
+    ```
 
-## Learn More
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+3.  **Setup Environment Variables**:
+    Create a `.env.local` file and add your backend API URL:
+    ```env
+    NEXT_PUBLIC_API_URL=http://localhost:5000/api
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🎨 Design Philosophy | فلسفة التصميم
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+AWN follows a **Premium Minimalist** approach. Every pixel is crafted to reduce cognitive load while maintaining a high-end feel. 
+- **Atmospheric UI**: Using mesh gradients and blur effects (Glassmorphism).
+- **Responsive & Alive**: Interactive elements with micro-animations for a fluid user experience.
+- **Accessibility First**: Semantic HTML and intuitive navigation.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+تعمل منصة عون وفق فلسفة الـ **Premium Minimalist**. تم تصميم كل عنصر بعناية لتقليل التشتت البصري مع الحفاظ على طابع الفخامة. استخدام التدرجات اللونية العصرية (Mesh Gradients) وتأثيرات الزجاج (Glassmorphism) تجعل الواجهة تبدو حية ومتفاعلة.
+
+---
+
+## 📝 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+**AWN - Empovering Impact, One Volunteer at a Time.**
+**عون - تمكين الأثر، متطوعًا تلو الآخر.**

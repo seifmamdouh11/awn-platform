@@ -170,7 +170,7 @@ export default function Opportunities() {
 
         {/* Header Section */}
         <motion.div
-           className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 rounded-[2rem] bg-gradient-to-r from-foreground/5 to-foreground/5 p-6 md:p-8 border border-foreground/5 shadow-sm"
+          className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 rounded-[2rem] bg-gradient-to-r from-foreground/5 to-foreground/5 p-6 md:p-8 border border-foreground/5 shadow-sm"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.35 }}
@@ -214,7 +214,7 @@ export default function Opportunities() {
               <tbody className="divide-y divide-foreground/5">
                 <AnimatePresence>
                   {events.length === 0 ? (
-                    <motion.tr 
+                    <motion.tr
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -223,7 +223,7 @@ export default function Opportunities() {
                         colSpan={7}
                         className="px-6 py-12 text-center text-foreground/50"
                       >
-                         <p className="text-base font-medium">{t.table.empty}</p>
+                        <p className="text-base font-medium">{t.table.empty}</p>
                       </td>
                     </motion.tr>
                   ) : (
@@ -260,25 +260,24 @@ export default function Opportunities() {
 
                         <td className="px-6 py-5 text-center">
                           <div className="flex flex-col items-center justify-center gap-1">
-                            <span 
-                              className={`inline-flex w-fit rounded-full px-3 py-1 text-[10px] font-bold uppercase border ${
-                                event.approval_status === "approved"
+                            <span
+                              className={`inline-flex w-fit rounded-full px-3 py-1 text-[10px] font-bold uppercase border ${event.approval_status === "approved"
                                   ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                                   : event.approval_status === "pending"
                                     ? "bg-orange-500/10 text-orange-600 border-orange-500/20"
                                     : "bg-red-500/10 text-red-600 border-red-500/20"
-                              }`}
+                                }`}
                             >
-                              {event.approval_status === "approved" 
-                                ? (lang === "ar" ? "مقبول" : "Accepted") 
-                                : event.approval_status === "pending" 
-                                  ? (lang === "ar" ? "قيد الانتظار" : "Pending") 
+                              {event.approval_status === "approved"
+                                ? (lang === "ar" ? "مقبول" : "Accepted")
+                                : event.approval_status === "pending"
+                                  ? (lang === "ar" ? "قيد الانتظار" : "Pending")
                                   : (lang === "ar" ? "مرفوض" : "Rejected")}
                             </span>
                             {event.admin_notes && (
-                               <span className="text-[10px] text-foreground/50 max-w-[120px] truncate" title={event.admin_notes}>
-                                 {event.admin_notes}
-                               </span>
+                              <span className="text-[10px] text-foreground/50 max-w-[120px] truncate" title={event.admin_notes}>
+                                {event.admin_notes}
+                              </span>
                             )}
                           </div>
                         </td>

@@ -6,11 +6,11 @@ import React from 'react'
 
 export default function About() {
   return (
-    <>
-    <AboutHero />
-    <OurStorySection />
-    <MissionVisionSection />
-    <PlatformHighlightsSection />
-    </>
+    <main className="overflow-x-hidden">
+      <AboutHero />
+      <OurStorySection />
+      <MissionVisionSection />
+      <PlatformHighlightsSection />
+    </main>
   )
 }

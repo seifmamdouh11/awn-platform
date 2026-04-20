@@ -21,6 +21,12 @@ export default function CompanyLoginForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [realStats, setRealStats] = useState<{ opportunities: number; volunteers: number; events: number; partners: number } | null>(null);
+
+  React.useEffect(() => {
+    api.get("/public-stats").then((res) => setRealStats(res.data)).catch(() => {});
+  }, []);
+
   const { lang } = useLang();
   const t = translations[lang];
   const dir = lang === "ar" ? "rtl" : "ltr";
@@ -126,12 +132,24 @@ export default function CompanyLoginForm() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.5 }}
           >
-            {t.stats.map((stat, i) => (
-              <div key={i} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                <p className="text-2xl font-black text-[#febc5a]">{stat.value}</p>
-                <p className="text-xs text-white/50 mt-1">{stat.label}</p>
-              </div>
-            ))}
+            {t.stats.map((stat, i) => {
+              let displayValue: string = stat.value;
+              if (realStats) {
+                let val = 0;
+                if (i === 0) val = realStats.partners;
+                if (i === 1) val = realStats.volunteers;
+                if (i === 2) val = realStats.opportunities;
+                if (i < 3) {
+                  displayValue = lang === "ar" ? `+${val}` : `${val}+`;
+                }
+              }
+              return (
+                <div key={i} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+                  <p className="text-2xl font-black text-[#febc5a]">{displayValue}</p>
+                  <p className="text-xs text-white/50 mt-1">{stat.label}</p>
+                </div>
+              );
+            })}
           </motion.div>
         </div>
 
@@ -300,7 +318,7 @@ const translations = {
   },
   ar: {
     heroEyebrow: "بوابة الشركات",
-    heroTitle: "مكّن فريقك،\naبنِ أثراً حقيقياً.",
+    heroTitle: "مكّن فريقك،\nابنِ أثراً حقيقياً.",
     heroSubtitle: "انشر الفرص، اعثر على متطوعين متحمسين، وأدر برامج مسؤوليتك الاجتماعية — كل ذلك في مكان واحد.",
     heroQuote: "«الشركات العظيمة تُبنى بأيدي من يُعطون.»",
     stats: [
@@ -323,9 +341,9 @@ const translations = {
     loginFailed: "فشل تسجيل الدخول",
     ok: "حسناً",
     underReviewTitle: "قيد المراجعة",
-    underReviewText: "حساب الشركة ما زال تحت المراجعة. حاول مرة أخرى لاحقًا.",
+    underReviewText: "حساب الشركة ما زال قيد المراجعة. يرجى المحاولة لاحقاً.",
     blockedTitle: "الحساب محظور",
-    blockedText: "تم حظر حساب الشركة. تواصل مع الدعم.",
+    blockedText: "تم حظر حساب الشركة. يرجى التواصل مع الدعم.",
     invalidCredentials: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
     goHome: "العودة للرئيسية",
     sessionSuspendedTitle: "انتهت الجلسة",

@@ -55,7 +55,18 @@ const walletTranslations = {
       wallet: "Wallet Phone Number",
       paypal: "PayPal Email",
       bank: "Bank Account Number"
-    }
+    },
+    deposit: "Deposit Funds",
+    depositModalTitle: "Deposit to Wallet",
+    depositModalDesc: "Choose a payment method and enter the amount you wish to deposit.",
+    depositSuccess: "Deposit request submitted! Admin will verify your transaction shortly.",
+    refLabel: "Reference / Transaction ID",
+    feeNote: "Standard withdrawal deduction: 5%",
+    proFeeNote: "PRO Member: 0% withdrawal deduction!",
+    deposits: "Deposit History",
+    withdrawals: "Withdrawals",
+    noDeposits: "No deposit requests found",
+    adminNotes: "Admin Notes"
   },
   ar: {
     title: "محفظتي",
@@ -92,7 +103,18 @@ const walletTranslations = {
       wallet: "رقم المحفظة",
       paypal: "بريد بايبال",
       bank: "رقم الحساب البنكي"
-    }
+    },
+    deposit: "إيداع رصيد",
+    depositModalTitle: "إيداع في المحفظة",
+    depositModalDesc: "اختر طريقة الدفع وأدخل المبلغ الذي تريد إيداعه.",
+    depositSuccess: "تم تقديم طلب الإيداع! سيتحقق المسؤول من عمليتك قريباً.",
+    refLabel: "رقم المرجع / العملية",
+    feeNote: "خصم السحب العادي: 5%",
+    proFeeNote: "عضو PRO: خصم سحب 0%!",
+    deposits: "سجل الإيداعات",
+    withdrawals: "السحوبات",
+    noDeposits: "لا يوجد سجل إيداعات حتى الآن",
+    adminNotes: "ملاحظات المسؤول"
   }
 };
 
@@ -103,13 +125,25 @@ export default function WalletPage() {
 
   const [balance, setBalance] = useState<number>(0);
   const [history, setHistory] = useState<any[]>([]);
+  const [depositHistory, setDepositHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"withdrawALS" | "DEPOSITS">("withdrawALS");
   const [modalOpen, setModalOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<"wallet" | "paypal" | "bank">("wallet");
   const [accountDetails, setAccountDetails] = useState("");
   const [profilePhone, setProfilePhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Subscription State
+  const [hasPro, setHasPro] = useState(false);
+
+  // Deposit State
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
+  const [depositAmount, setDepositAmount] = useState("");
+  const [depositMethod, setDepositMethod] = useState<"WALLET" | "PAYPAL" | "BANK">("WALLET");
+  const [referenceId, setReferenceId] = useState("");
+  const [depositing, setDepositing] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -119,15 +153,17 @@ export default function WalletPage() {
     try {
       setLoading(true);
 
-      const [resProfile, resHistory] = await Promise.all([
-        api.get("/volunteers/me"),
-        api.get("/withdrawals/me")
-      ]);
+      const resProfile = await api.get("/volunteers/me");
+      const resHistory = await api.get("/withdrawals/me");
+      const resDeposits = await api.get("/volunteer-wallet/requests");
+      const resSub = await api.get("/subscriptions/me");
 
       setBalance(Number(resProfile.data.balance || 0));
       setProfilePhone(resProfile.data.phone || "");
       if (!accountDetails) setAccountDetails(resProfile.data.phone || "");
       setHistory(Array.isArray(resHistory.data) ? resHistory.data : []);
+      setDepositHistory(Array.isArray(resDeposits.data) ? resDeposits.data : []);
+      setHasPro(!!resSub.data);
     } catch (error) {
       console.error("Error fetching wallet data:", error);
     } finally {
@@ -169,6 +205,41 @@ export default function WalletPage() {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDepositRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = Number(depositAmount);
+
+    if (amount < 50) {
+      return Swal.fire({ icon: "error", title: t.minAmount });
+    }
+
+    try {
+      setDepositing(true);
+      const res = await api.post("/volunteer-wallet/deposit", {
+        amount,
+        method: depositMethod,
+        reference_id: referenceId
+      });
+
+      await Swal.fire({ 
+        icon: "success", 
+        title: depositMethod === "PAYPAL" ? "Instant Deposit Success!" : t.depositSuccess 
+      });
+      
+      setDepositModalOpen(false);
+      setDepositAmount("");
+      setReferenceId("");
+      fetchData(); 
+    } catch (error: any) {
+      Swal.fire({
+        icon: "error",
+        title: error?.response?.data?.error || "Error processing deposit"
+      });
+    } finally {
+      setDepositing(false);
     }
   };
 
@@ -214,15 +285,27 @@ export default function WalletPage() {
           </p>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setModalOpen(true)}
-          className="flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-br from-[#febc5a] to-[#d97706] text-black font-black rounded-2xl shadow-xl shadow-[#febc5a]/20 transition-all hover:shadow-[#febc5a]/30"
-        >
-          <Plus size={20} />
-          {t.withdraw}
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setDepositModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-6 py-3.5 bg-foreground font-black rounded-2xl text-background shadow-xl transition-all"
+          >
+            <Plus size={20} />
+            {t.deposit}
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-br from-[#febc5a] to-[#d97706] text-black font-black rounded-2xl shadow-xl shadow-[#febc5a]/20 transition-all hover:shadow-[#febc5a]/30"
+          >
+            <ArrowDownCircle size={20} />
+            {t.withdraw}
+          </motion.button>
+        </div>
       </div>
 
       {/* Main Grid */}
@@ -275,15 +358,30 @@ export default function WalletPage() {
         {/* Right Column: History */}
         <div className="lg:col-span-2">
           <div className="rounded-[2.5rem] border border-foreground/5 bg-background shadow-xl overflow-hidden flex flex-col h-full">
-            <div className="p-6 border-b border-foreground/5 flex items-center justify-between">
+            <div className="p-6 border-b border-foreground/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-foreground/5 rounded-2xl">
                   <History className="text-foreground/60 w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg">{t.history}</h3>
+                  <h3 className="font-black text-lg">{activeTab === "withdrawALS" ? t.history : t.deposits}</h3>
                   <p className="text-[10px] uppercase font-black tracking-widest text-foreground/30">{t.historyDesc}</p>
                 </div>
+              </div>
+
+              <div className="p-1 bg-foreground/5 rounded-2xl flex items-center self-start">
+                  <button 
+                    onClick={() => setActiveTab("withdrawALS")}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "withdrawALS" ? "bg-background shadow-lg shadow-black/5 text-foreground" : "text-foreground/40 hover:text-foreground/60"}`}
+                  >
+                    {t.withdrawals}
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab("DEPOSITS")}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "DEPOSITS" ? "bg-background shadow-lg shadow-black/5 text-foreground" : "text-foreground/40 hover:text-foreground/60"}`}
+                  >
+                    {t.deposits}
+                  </button>
               </div>
             </div>
 
@@ -298,61 +396,119 @@ export default function WalletPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-foreground/5">
-                  <AnimatePresence>
-                    {history.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="px-6 py-12 text-center text-foreground/30">
-                          <History className="w-12 h-12 mx-auto mb-4 opacity-10" />
-                          <p className="font-bold text-sm tracking-tight">{t.empty}</p>
-                        </td>
-                      </tr>
-                    ) : (
-                      history.map((record, i) => (
-                        <motion.tr
-                          key={record.id}
-                          layout
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                          className="group hover:bg-foreground/[0.01] transition-colors"
-                        >
-                          <td className="px-6 py-5 whitespace-nowrap">
-                            <span className="text-sm font-bold text-foreground/70">
-                              {new Date(record.created_at).toLocaleDateString(isRTL ? 'ar-EG' : 'en-US', {
-                                day: 'numeric', month: 'short', year: 'numeric'
-                              })}
-                            </span>
-                          </td>
-                          <td className="px-6 py-5">
-                            <div className="flex flex-col">
-                              <span className="text-xs font-black text-foreground/60 uppercase tracking-wider">
-                                {t.methods[record.method as keyof typeof t.methods] || record.method}
-                              </span>
-                              <span className="text-[10px] font-bold text-foreground/30 truncate max-w-[120px]">
-                                {record.account_details}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-5">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-black text-foreground/80">
-                                {record.amount_requested} <span className="text-[10px] font-bold opacity-40">{t.currency}</span>
-                              </span>
-                              <span className="text-[10px] font-bold text-foreground/30">
-                                {isRTL ? `صافي: ${record.net_amount}` : `Net: ${record.net_amount}`} {t.currency}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-5">
-                            <div className="flex justify-center">
-                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${getStatusStyle(record.status)}`}>
-                                {getStatusIcon(record.status)}
-                                {t[record.status as keyof typeof t] as string}
-                              </span>
-                            </div>
+                  <AnimatePresence mode="wait">
+                    {activeTab === "withdrawALS" ? (
+                      history.length === 0 ? (
+                        <motion.tr key="empty-withdrawals" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                          <td colSpan={4} className="px-6 py-12 text-center text-foreground/30">
+                            <History className="w-12 h-12 mx-auto mb-4 opacity-10" />
+                            <p className="font-bold text-sm tracking-tight">{t.empty}</p>
                           </td>
                         </motion.tr>
-                      ))
+                      ) : (
+                        history.map((record, i) => (
+                          <motion.tr
+                            key={`withdraw-${record.id}`}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            className="group hover:bg-foreground/[0.01] transition-colors"
+                          >
+                            <td className="px-6 py-5 whitespace-nowrap">
+                              <span className="text-sm font-bold text-foreground/70">
+                                {new Date(record.created_at).toLocaleDateString(isRTL ? 'ar-EG' : 'en-US', {
+                                  day: 'numeric', month: 'short', year: 'numeric'
+                                })}
+                              </span>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="flex flex-col">
+                                <span className="text-xs font-black text-foreground/60 uppercase tracking-wider">
+                                  {t.methods[record.method as keyof typeof t.methods] || record.method}
+                                </span>
+                                <span className="text-[10px] font-bold text-foreground/30 truncate max-w-[120px]">
+                                  {record.account_details}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-black text-foreground/80">
+                                  {record.amount_requested} <span className="text-[10px] font-bold opacity-40">{t.currency}</span>
+                                </span>
+                                <span className="text-[10px] font-bold text-foreground/30">
+                                  {isRTL ? `صافي: ${record.net_amount}` : `Net: ${record.net_amount}`} {t.currency}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="flex justify-center">
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${getStatusStyle(record.status)}`}>
+                                  {getStatusIcon(record.status)}
+                                  {t[record.status as keyof typeof t] as string}
+                                </span>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))
+                      )
+                    ) : (
+                      depositHistory.length === 0 ? (
+                        <motion.tr key="empty-deposits" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                          <td colSpan={4} className="px-6 py-12 text-center text-foreground/30">
+                            <History className="w-12 h-12 mx-auto mb-4 opacity-10" />
+                            <p className="font-bold text-sm tracking-tight">{t.noDeposits}</p>
+                          </td>
+                        </motion.tr>
+                      ) : (
+                        depositHistory.map((record, i) => (
+                          <motion.tr
+                            key={`deposit-${record.id}`}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            className="group hover:bg-foreground/[0.01] transition-colors"
+                          >
+                            <td className="px-6 py-5 whitespace-nowrap">
+                              <span className="text-sm font-bold text-foreground/70">
+                                {new Date(record.created_at).toLocaleDateString(isRTL ? 'ar-EG' : 'en-US', {
+                                  day: 'numeric', month: 'short', year: 'numeric'
+                                })}
+                              </span>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="flex flex-col">
+                                <span className="text-xs font-black text-foreground/60 uppercase tracking-wider">
+                                  {t.methods[record.method.toLowerCase() as keyof typeof t.methods] || record.method}
+                                </span>
+                                <span className="text-[10px] font-bold text-foreground/30 truncate max-w-[120px]">
+                                  {record.reference_id}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-black text-foreground/80">
+                                  {record.amount} <span className="text-[10px] font-bold opacity-40">{t.currency}</span>
+                                </span>
+                                {record.admin_notes && (
+                                  <span className="text-[10px] font-bold text-foreground/30 italic">
+                                    {t.adminNotes}: {record.admin_notes}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-5">
+                              <div className="flex justify-center">
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${getStatusStyle(record.status.toLowerCase())}`}>
+                                  {getStatusIcon(record.status.toLowerCase())}
+                                  {t[record.status.toLowerCase() as keyof typeof t] as string}
+                                </span>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))
+                      )
                     )}
                   </AnimatePresence>
                 </tbody>
@@ -465,12 +621,12 @@ export default function WalletPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-bold text-foreground/40">{t.totalAfterFees}</span>
                       <span className="text-lg font-black text-emerald-600">
-                        {(Number(withdrawAmount) * 0.9).toFixed(2)} {t.currency}
+                        {(Number(withdrawAmount) * (hasPro ? 1.0 : 0.95)).toFixed(2)} {t.currency}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-[10px] text-emerald-600/60 font-medium">
                       <AlertCircle size={12} />
-                      {isRTL ? "يتم خصم 10% عمولة مصروفات إدارية" : "A 10% admin fee is deducted"}
+                      {hasPro ? t.proFeeNote : t.feeNote}
                     </div>
                   </motion.div>
                 )}
@@ -496,6 +652,117 @@ export default function WalletPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Deposit Modal */}
+      <AnimatePresence>
+        {depositModalOpen && (
+          <div className="fixed inset-0 z-[100] grid place-items-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDepositModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-lg bg-background border border-foreground/10 rounded-[2.5rem] shadow-2xl overflow-hidden"
+              dir={isRTL ? "rtl" : "ltr"}
+            >
+              <div className="p-8 border-b border-foreground/5 bg-gradient-to-br from-foreground/[0.02] to-transparent">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="p-3 bg-foreground/10 rounded-2xl text-foreground">
+                    <Plus size={24} />
+                  </div>
+                  <h2 className="text-2xl font-black">{t.depositModalTitle}</h2>
+                </div>
+                <p className="text-sm text-foreground/40 font-medium">{t.depositModalDesc}</p>
+              </div>
+
+              <form onSubmit={handleDepositRequest} className="p-8 space-y-6">
+                <div className="space-y-4">
+                  <label className="text-xs font-black uppercase tracking-widest text-foreground/40 px-1">
+                    {t.methodLabel}
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {(["WALLET", "PAYPAL", "BANK"] as const).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setDepositMethod(m)}
+                        className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all ${depositMethod === m
+                          ? "border-[#febc5a] bg-[#febc5a]/10 text-[#d97706]"
+                          : "border-foreground/5 bg-foreground/5 text-foreground/40 hover:border-foreground/10"
+                          }`}
+                      >
+                        {m === "WALLET" ? <Phone size={20} /> : m === "PAYPAL" ? <Plus size={20} /> : <AlertCircle size={20} />}
+                        <span className="text-[10px] font-black uppercase tracking-tighter">{t.methods[m.toLowerCase() as keyof typeof t.methods]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {depositMethod !== "PAYPAL" && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-foreground/40 px-1">
+                      {t.refLabel}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={referenceId}
+                      onChange={(e) => setReferenceId(e.target.value)}
+                      className="w-full h-14 px-6 bg-foreground/5 border border-foreground/5 rounded-2xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#febc5a]/50 transition-all"
+                      placeholder="Transaction ID / Ref #"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-foreground/40 px-1">
+                    {t.amountLabel}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      required
+                      min={50}
+                      value={depositAmount}
+                      onChange={(e) => setDepositAmount(e.target.value)}
+                      className="w-full h-16 px-6 bg-foreground/5 border border-foreground/5 rounded-2xl text-xl font-black focus:outline-none focus:ring-2 focus:ring-[#febc5a]/50 transition-all"
+                      placeholder="0.00"
+                    />
+                    <div className={`absolute inset-y-0 ${isRTL ? 'left-6' : 'right-6'} flex items-center pointer-events-none`}>
+                      <span className="font-bold text-foreground/30">{t.currency}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setDepositModalOpen(false)}
+                    className="flex-1 px-3 py-4 rounded-2xl border border-foreground/10 font-bold text-foreground/60 transition hover:bg-foreground/5 active:scale-95"
+                  >
+                    {t.cancel}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={depositing}
+                    className="flex-[2] px-3 py-4 rounded-2xl bg-black text-white dark:bg-white dark:text-black font-black transition hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {depositing ? <Loader2 className="animate-spin w-5 h-5" /> : t.deposit}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
+

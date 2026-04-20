@@ -434,7 +434,7 @@ export default function Dashboard() {
                           type="button"
                           onClick={() => openEditModal(event)}
                           title={t.buttons?.edit || "Edit"}
-                          className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-600 transition hover:bg-blue-600 hover:text-white shadow-sm border border-blue-200 hover:shadow hover:scale-105 active:scale-95"
+                          className="flex items-center justify-center h-8 w-8 rounded-full bg-emerald-100 text-emerald-600 transition hover:bg-emerald-600 hover:text-white shadow-sm border border-emerald-200 hover:shadow hover:scale-105 active:scale-95"
                         >
                           <FaPen className="text-sm" />
                         </button>
@@ -470,10 +470,14 @@ export default function Dashboard() {
 }
 
 const STAT_COLORS = [
+  // Primary brand color
+  { border: "border-primary/20", bg: "bg-primary/10", text: "text-primary", from: "from-primary/20" },
+  // Emerald accent
+  { border: "border-emerald-500/20", bg: "bg-emerald-500/10", text: "text-emerald-500", from: "from-emerald-500/20" },
+  // Amber accent (fallback to brand hue)
   { border: "border-[#febc5a]/20", bg: "bg-[#febc5a]/10", text: "text-[#febc5a]", from: "from-[#febc5a]/20" },
-  { border: "border-blue-500/20",  bg: "bg-blue-500/10",  text: "text-blue-500",  from: "from-blue-500/20" },
-  { border: "border-purple-500/20",bg: "bg-purple-500/10",text: "text-purple-500",from: "from-purple-500/20" },
-  { border: "border-emerald-500/20",bg: "bg-emerald-500/10",text: "text-emerald-500",from: "from-emerald-500/20" },
+  // Purple accent
+  { border: "border-purple-500/20", bg: "bg-purple-500/10", text: "text-purple-500", from: "from-purple-500/20" },
 ];
 
 function StatCard({ title, value, index = 0 }: { title: string; value: number; index?: number }) {
@@ -503,14 +507,19 @@ function StatCard({ title, value, index = 0 }: { title: string; value: number; i
 function getStatusStyle(status: string) {
   switch (status) {
     case "open":
-      return "bg-green-500/10 text-green-600 border-green-500/20";
+      // Use primary brand color for open opportunities
+      return "bg-primary/10 text-primary border-primary/20";
     case "closed":
-      return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+      // Muted gray for closed
+      return "bg-foreground/10 text-foreground/60 border-foreground/20";
     case "draft":
-      return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
+      // Amber accent (fallback to brand hue)
+      return "bg-primary/10 text-primary border-primary/20";
     case "completed":
-      return "bg-blue-500/10 text-blue-600 border-blue-500/20";
+      // Emerald accent for completed
+      return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
     case "cancelled":
+      // Red for cancelled
       return "bg-red-500/10 text-red-600 border-red-500/20";
     default:
       return "bg-foreground/10 text-foreground/60 border-foreground/20";

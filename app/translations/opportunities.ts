@@ -2,7 +2,7 @@ export const opportunitiesTranslations = {
   en: {
     title: "Manage Opportunities",
     description: "View, edit, and manage all posted opportunities",
-    postOpportunity: "+ Post Opportunity",
+    postOpportunity: "Post Opportunity",
     table: {
       title: "Title",
       category: "Category",
@@ -28,7 +28,7 @@ export const opportunitiesTranslations = {
   ar: {
     title: "إدارة الفرص",
     description: "عرض وتعديل وإدارة جميع الفرص المنشورة",
-    postOpportunity: "+ إضافة فرصة",
+    postOpportunity: "إضافة فرصة",
     table: {
       title: "العنوان",
       category: "التصنيف",

@@ -14,7 +14,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("company-sidebar-collapsed");
+    const saved = localStorage.getItem("app-sidebar-collapsed");
     if (saved === "true") {
       setIsCollapsed(true);
     }
@@ -23,7 +23,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem("company-sidebar-collapsed", String(isCollapsed));
+      localStorage.setItem("app-sidebar-collapsed", String(isCollapsed));
     }
   }, [isCollapsed, isLoaded]);
 

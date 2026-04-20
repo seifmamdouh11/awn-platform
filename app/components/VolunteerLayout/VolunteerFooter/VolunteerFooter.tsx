@@ -87,6 +87,15 @@ export default function VolunteerFooter() {
                   {t.profile}
                 </Link>
               </motion.div>
+
+              <motion.div whileHover={{ x: isArabic ? -4 : 4 }}>
+                <Link
+                  href="/volunteer/subscriptions"
+                  className="transition hover:text-primary"
+                >
+                  {t.subscriptions}
+                </Link>
+              </motion.div>
             </div>
           </motion.div>
 
@@ -158,6 +167,7 @@ const translations = {
     opportunities: "Opportunities",
     applications: "Applications",
     profile: "Profile",
+    subscriptions: "Subscriptions",
     followUs: "Follow Us",
     rights: "All rights reserved.",
     privacy: "Privacy Policy",
@@ -170,6 +180,7 @@ const translations = {
     opportunities: "الفرص",
     applications: "الطلبات",
     profile: "الملف الشخصي",
+    subscriptions: "الاشتراكات",
     followUs: "تابعنا",
     rights: "جميع الحقوق محفوظة.",
     privacy: "سياسة الخصوصية",

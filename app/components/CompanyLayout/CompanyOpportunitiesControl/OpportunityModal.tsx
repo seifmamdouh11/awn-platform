@@ -5,6 +5,8 @@ import api from "@/app/utils/api";
 import Swal from "sweetalert2";
 import { useEventsCategories } from "@/app/Context/EventsCategories";
 import { useLang } from "@/app/Hooks/LangHook/LangHook";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -210,7 +212,14 @@ export default function OpportunityModal({
   React.useEffect(() => {
     if (open) {
       setForm(getInitialForm());
+      // Lock body scroll naturally when modal opens
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
     }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
   }, [event, open]);
 
   const resetForm = () => {
@@ -341,268 +350,292 @@ export default function OpportunityModal({
     return t.modalTitle;
   };
 
-  const inputClass = `w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isViewMode ? "bg-gray-50 text-gray-700 cursor-default" : ""
+  const inputClass = `w-full rounded-xl border border-foreground/20 bg-background px-4 py-3 text-sm text-foreground transition-all duration-200 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary ${isViewMode ? "bg-foreground/5 opacity-70 cursor-not-allowed" : ""
     }`;
 
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/50 px-3 py-4 sm:grid sm:place-content-center sm:p-4"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div
-        dir={currentLang === "ar" ? "rtl" : "ltr"}
-        className="mx-auto flex max-h-[95vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-lg"
-      >
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 sm:px-6">
-          <h2 className="text-black text-base font-bold sm:text-xl">{getModalTitle()}</h2>
-
-          <button
-            type="button"
-            onClick={handleClose}
-            className="rounded-full p-2 text-sm hover:bg-gray-100"
-          >
-            ✕
-          </button>
-        </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 text-[#333]"
+    <AnimatePresence>
+      {open && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6"
+          role="dialog"
+          aria-modal="true"
         >
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold">{t.titleAr}</label>
-                <input
-                  name="title_ar"
-                  value={form.title_ar}
-                  placeholder={t.titleArPlaceholder}
-                  onChange={handleChange}
-                  className={inputClass}
-                  required={!isViewMode}
-                  readOnly={isViewMode}
-                />
-              </div>
+          {/* Backdrop Click Handler */}
+          <div className="absolute inset-0" onClick={handleClose} />
 
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold">{t.titleEn}</label>
-                <input
-                  name="title_en"
-                  value={form.title_en}
-                  placeholder={t.titleEnPlaceholder}
-                  onChange={handleChange}
-                  className={inputClass}
-                  required={!isViewMode}
-                  readOnly={isViewMode}
-                />
-              </div>
-            </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.1, ease: "easeOut" }}
+            dir={currentLang === "ar" ? "rtl" : "ltr"}
+            className="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[2rem] bg-background shadow-2xl border border-foreground/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-foreground/10 px-6 py-5 sm:px-8">
+              <h2 className="text-foreground text-lg font-bold sm:text-xl">{getModalTitle()}</h2>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold">{t.category}</label>
-              <select
-                name="category_id"
-                value={form.category_id}
-                onChange={handleChange}
-                className={inputClass}
-                required={!isViewMode}
-                disabled={isViewMode}
+              <button
+                type="button"
+                onClick={handleClose}
+                className="rounded-full p-2 text-foreground/50 hover:bg-foreground/10 hover:text-foreground transition-colors"
               >
-                <option value="" disabled>
-                  {t.selectCategory}
-                </option>
-
-                {categories.map((category: any) => (
-                  <option key={category.id} value={category.id}>
-                    {currentLang === "ar"
-                      ? category.category_name_ar || category.category_name
-                      : category.category_name_en || category.category_name}
-                  </option>
-                ))}
-              </select>
+                <X size={20} />
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold">{t.descriptionAr}</label>
-                <textarea
-                  name="description_ar"
-                  value={form.description_ar}
-                  placeholder={t.descriptionArPlaceholder}
-                  onChange={handleChange}
-                  className={`min-h-[120px] ${inputClass}`}
-                  rows={4}
-                  required={!isViewMode}
-                  readOnly={isViewMode}
-                />
-              </div>
+            {/* Body */}
+            <form
+              onSubmit={handleSubmit}
+              className="custom-scrollbar flex-1 overflow-y-auto px-6 py-6 sm:px-8"
+            >
+              <div className="space-y-6">
 
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold">{t.descriptionEn}</label>
-                <textarea
-                  name="description_en"
-                  value={form.description_en}
-                  placeholder={t.descriptionEnPlaceholder}
-                  onChange={handleChange}
-                  className={`min-h-[120px] ${inputClass}`}
-                  rows={4}
-                  required={!isViewMode}
-                  readOnly={isViewMode}
-                />
-              </div>
-            </div>
+                {/* Titles */}
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-foreground/80">{t.titleAr}</label>
+                    <input
+                      name="title_ar"
+                      value={form.title_ar}
+                      placeholder={t.titleArPlaceholder}
+                      onChange={handleChange}
+                      className={inputClass}
+                      required={!isViewMode}
+                      readOnly={isViewMode}
+                    />
+                  </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold">{t.address}</label>
-              <input
-                name="address"
-                value={form.address}
-                placeholder={t.addressPlaceholder}
-                onChange={handleChange}
-                className={inputClass}
-                required={!isViewMode}
-                readOnly={isViewMode}
-              />
-            </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-foreground/80">{t.titleEn}</label>
+                    <input
+                      name="title_en"
+                      value={form.title_en}
+                      placeholder={t.titleEnPlaceholder}
+                      onChange={handleChange}
+                      className={inputClass}
+                      required={!isViewMode}
+                      readOnly={isViewMode}
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 text-[#333]">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold">{t.capacity}</label>
-                <input
-                  name="capacity"
-                  type="number"
-                  min={1}
-                  value={form.capacity}
-                  placeholder="30"
-                  onChange={handleChange}
-                  className={inputClass}
-                  required={!isViewMode}
-                  readOnly={isViewMode}
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold">{t.status}</label>
-                <select
-                  name="status"
-                  value={form.status}
-                  onChange={handleChange}
-                  className={inputClass}
-                  disabled={isViewMode}
-                >
-                  <option value="draft">{t.draft}</option>
-                  <option value="open">{t.open}</option>
-                  <option value="closed">{t.closed}</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold">{t.type}</label>
-                <select
-                  name="event_type"
-                  value={form.event_type}
-                  onChange={handleChange}
-                  className={inputClass}
-                  disabled={isViewMode}
-                >
-                  <option value="volunteer">{t.volunteer}</option>
-                  <option value="paid">{t.paid}</option>
-                </select>
-              </div>
-            </div>
-
-            {form.event_type === "paid" && (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-bold text-blue-900">{(t as any).price}</label>
-                  <input
-                    name="compensation"
-                    type="number"
-                    min={0}
-                    value={form.compensation}
+                {/* Category */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-foreground/80">{t.category}</label>
+                  <select
+                    name="category_id"
+                    value={form.category_id}
                     onChange={handleChange}
-                    className={`${inputClass} !bg-white border-blue-200 focus:ring-blue-400`}
+                    className={inputClass}
+                    required={!isViewMode}
+                    disabled={isViewMode}
+                  >
+                    <option value="" disabled>
+                      {t.selectCategory}
+                    </option>
+
+                    {categories.map((category: any) => (
+                      <option key={category.id} value={category.id}>
+                        {currentLang === "ar"
+                          ? category.category_name_ar || category.category_name
+                          : category.category_name_en || category.category_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Descriptions */}
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-foreground/80">{t.descriptionAr}</label>
+                    <textarea
+                      name="description_ar"
+                      value={form.description_ar}
+                      placeholder={t.descriptionArPlaceholder}
+                      onChange={handleChange}
+                      className={`min-h-[140px] resize-y ${inputClass}`}
+                      rows={4}
+                      required={!isViewMode}
+                      readOnly={isViewMode}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-foreground/80">{t.descriptionEn}</label>
+                    <textarea
+                      name="description_en"
+                      value={form.description_en}
+                      placeholder={t.descriptionEnPlaceholder}
+                      onChange={handleChange}
+                      className={`min-h-[140px] resize-y ${inputClass}`}
+                      rows={4}
+                      required={!isViewMode}
+                      readOnly={isViewMode}
+                    />
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-foreground/80">{t.address}</label>
+                  <input
+                    name="address"
+                    value={form.address}
+                    placeholder={t.addressPlaceholder}
+                    onChange={handleChange}
+                    className={inputClass}
                     required={!isViewMode}
                     readOnly={isViewMode}
                   />
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-bold text-blue-900">{(t as any).commission}</label>
-                  <div className={`${inputClass} !bg-blue-100/50 border-blue-200 flex items-center font-bold text-blue-800`}>
-                    12%
+                {/* Details Row */}
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-foreground/80">{t.capacity}</label>
+                    <input
+                      name="capacity"
+                      type="number"
+                      min={1}
+                      value={form.capacity}
+                      placeholder="30"
+                      onChange={handleChange}
+                      className={inputClass}
+                      required={!isViewMode}
+                      readOnly={isViewMode}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-foreground/80">{t.status}</label>
+                    <select
+                      name="status"
+                      value={form.status}
+                      onChange={handleChange}
+                      className={inputClass}
+                      disabled={isViewMode}
+                    >
+                      <option value="draft">{t.draft}</option>
+                      <option value="open">{t.open}</option>
+                      <option value="closed">{t.closed}</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-foreground/80">{t.type}</label>
+                    <select
+                      name="event_type"
+                      value={form.event_type}
+                      onChange={handleChange}
+                      className={inputClass}
+                      disabled={isViewMode}
+                    >
+                      <option value="volunteer">{t.volunteer}</option>
+                      <option value="paid">{t.paid}</option>
+                    </select>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-bold text-emerald-700">{(t as any).netReward}</label>
-                  <div className="h-[42px] flex items-center px-3 bg-emerald-50 border border-emerald-100 rounded-lg text-emerald-800 font-black text-lg">
-                    {Math.max(0, Number(form.compensation) * (1 - Number(form.commission_rate) / 100)).toFixed(2)}
-                    <span className="text-[10px] font-bold mx-1 opacity-60">EGP</span>
+                {/* Paid Compensation Block */}
+                {form.event_type === "paid" && (
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 md:grid-cols-3 bg-primary/5 p-6 rounded-2xl border border-primary/20 shadow-inner">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-primary">{(t as any).price}</label>
+                      <input
+                        name="compensation"
+                        type="number"
+                        min={0}
+                        value={form.compensation}
+                        onChange={handleChange}
+                        className={`${inputClass} !bg-background border-primary/30 focus:ring-primary`}
+                        required={!isViewMode}
+                        readOnly={isViewMode}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-primary">{(t as any).commission}</label>
+                      <div className={`${inputClass} !bg-primary/10 border-primary/20 flex items-center font-bold text-primary`}>
+                        12%
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-bold text-foreground">{(t as any).netReward}</label>
+                      <div className="h-[46px] flex items-center px-4 bg-background border border-foreground/10 rounded-xl text-foreground font-black text-lg">
+                        {Math.max(0, Number(form.compensation) * (1 - Number(form.commission_rate) / 100)).toFixed(2)}
+                        <span className="text-[10px] font-bold mx-1 opacity-60">EGP</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Timeline */}
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-foreground/80">{t.startTime}</label>
+                    <input
+                      type="datetime-local"
+                      name="start_time"
+                      value={form.start_time}
+                      onChange={handleChange}
+                      className={inputClass}
+                      required={!isViewMode}
+                      readOnly={isViewMode}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-foreground/80">{t.endTime}</label>
+                    <input
+                      type="datetime-local"
+                      name="end_time"
+                      value={form.end_time}
+                      onChange={handleChange}
+                      className={inputClass}
+                      required={!isViewMode}
+                      readOnly={isViewMode}
+                    />
                   </div>
                 </div>
               </div>
-            )}
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold">{t.startTime}</label>
-                <input
-                  type="datetime-local"
-                  name="start_time"
-                  value={form.start_time}
-                  onChange={handleChange}
-                  className={inputClass}
-                  required={!isViewMode}
-                  readOnly={isViewMode}
-                />
+              {/* Footer Actions */}
+              <div className="mt-8 flex flex-col-reverse gap-3 border-t border-foreground/10 pt-6 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="w-full rounded-xl bg-red-500/10 border border-red-500/20 px-6 py-3 text-sm font-bold text-red-600 hover:bg-red-500/20 transition-all sm:w-auto"
+                >
+                  {isViewMode ? t.close : t.cancel}
+                </button>
+
+                {!isViewMode && (
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full rounded-xl bg-primary px-8 py-3 text-sm font-bold text-black shadow-md hover:opacity-90 transition-all disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto flex items-center justify-center gap-2"
+                  >
+                    {loading && (
+                      <span className="h-4 w-4 rounded-full border-2 border-black/20 border-t-black animate-spin"></span>
+                    )}
+                    {loading
+                      ? isEditMode
+                        ? t.updating
+                        : t.creating
+                      : isEditMode
+                        ? t.update
+                        : t.create}
+                  </button>
+                )}
               </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold">{t.endTime}</label>
-                <input
-                  type="datetime-local"
-                  name="end_time"
-                  value={form.end_time}
-                  onChange={handleChange}
-                  className={inputClass}
-                  required={!isViewMode}
-                  readOnly={isViewMode}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-5 flex flex-col-reverse gap-2 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="w-full rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium hover:bg-gray-200 sm:w-auto"
-            >
-              {isViewMode ? t.close : t.cancel}
-            </button>
-
-            {!isViewMode && (
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
-              >
-                {loading
-                  ? isEditMode
-                    ? t.updating
-                    : t.creating
-                  : isEditMode
-                    ? t.update
-                    : t.create}
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-    </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -1,6 +1,8 @@
 import React from 'react'
 import VolunteerClientLayout from './VolunteerClientLayout';
 import { Metadata } from 'next';
+import { SidebarProvider } from '@/app/Context/SidebarContext';
+
 type Props = {
     children: React.ReactNode
 }
@@ -14,10 +16,10 @@ export default function VolunteerLayout({ children }: Props) {
 
 
     return (
-        <>
+        <SidebarProvider>
             <VolunteerClientLayout>
                 {children}
             </VolunteerClientLayout>
-        </>
+        </SidebarProvider>
     )
 }

@@ -29,69 +29,62 @@ export default function ServicesCTASection() {
   return (
     <section
       dir={lang === "ar" ? "rtl" : "ltr"}
-      className="bg-primary py-14 sm:py-16 lg:py-20"
+      className="bg-background py-16 sm:py-24"
     >
-      <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 28 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55 }}
+          transition={{ duration: 0.6 }}
           viewport={{ once: true, amount: 0.3 }}
+          className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#F5A623] to-[#d97706] px-6 py-16 text-center shadow-xl sm:px-12 sm:py-20"
         >
-          {/* Title */}
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.08 }}
-            viewport={{ once: true }}
-            className="text-3xl font-bold text-foreground sm:text-4xl"
-          >
-            {t.title}
-          </motion.h2>
+          <div className="relative z-10 mx-auto max-w-2xl">
+            {/* Title */}
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              viewport={{ once: true }}
+              className="text-3xl font-black tracking-tight text-gray-900 sm:text-4xl lg:text-5xl"
+            >
+              {t.title}
+            </motion.h2>
 
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.14 }}
-            viewport={{ once: true }}
-            className="mt-4 text-sm leading-7 text-foreground/90 sm:text-base"
-          >
-            {t.desc}
-          </motion.p>
+            {/* Description */}
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.18 }}
+              viewport={{ once: true }}
+              className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-gray-900/80 sm:text-lg"
+            >
+              {t.desc}
+            </motion.p>
 
-          {/* Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.22 }}
-            viewport={{ once: true }}
-            className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row"
-          >
+            {/* Buttons */}
             <motion.div
-              whileHover={{ scale: 1.04, y: -2 }}
-              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.26 }}
+              viewport={{ once: true }}
+              className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
             >
               <Link
                 href="/"
-                className="rounded-xl bg-foreground px-6 py-3 text-sm font-medium text-background transition hover:opacity-90"
+                className="flex h-14 w-full items-center justify-center rounded-2xl bg-gray-900 px-8 text-sm font-bold text-white transition-transform hover:scale-105 active:scale-95 sm:w-auto sm:text-base"
               >
                 {t.btn1}
               </Link>
-            </motion.div>
 
-            <motion.div
-              whileHover={{ scale: 1.04, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-            >
               <Link
                 href="/register"
-                className="rounded-xl border border-foreground/20 px-6 py-3 text-sm font-medium text-foreground transition hover:bg-foreground hover:text-background"
+                className="flex text-foreground bg-background/50 h-14 w-full items-center justify-center rounded-2xl border-2 border-gray-900/20 px-8 text-sm font-bold transition-all hover:bg-background hover:scale-105 active:scale-95 sm:w-auto sm:text-base"
               >
                 {t.btn2}
               </Link>
             </motion.div>
-          </motion.div>
+          </div>
         </motion.div>
       </div>
     </section>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useLang } from "./Hooks/LangHook/LangHook";
-import Spinner from "./components/Spinner/Spinner";
+import SplashScreen from "./components/SplashScreen/SplashScreen";
 import { useRouter, usePathname } from "next/navigation";
 import api, { isAxiosError } from "./utils/api";
 
@@ -29,13 +29,15 @@ export default function MainClientLayout({ children }: Props) {
     }
   }, [setLang]);
 
-
-
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
 
+      // Minimum delay of 4 seconds to showcase branding
+      const timerPromise = new Promise((resolve) => setTimeout(resolve, 4000));
+
       if (!token) {
+        await timerPromise;
         setLoading(false);
         return;
       }
@@ -44,16 +46,16 @@ export default function MainClientLayout({ children }: Props) {
         const isVolunteerRoute = pathname.startsWith("/volunteer");
         const isCompanyRoute = pathname.startsWith("/company");
 
-        if (isVolunteerRoute) {
-          await api.get("/volunteers/me");
-        }
+        const requests = [];
+        if (isVolunteerRoute) requests.push(api.get("/volunteers/me"));
+        if (isCompanyRoute) requests.push(api.get("/companies/me"));
 
-        if (isCompanyRoute) {
-          await api.get("/companies/me");
-        }
-
+        // Wait for both API calls and the minimum timer
+        await Promise.all([...requests, timerPromise]);
+        
         setLoading(false);
       } catch (error: any) {
+        await timerPromise;
         if (isAxiosError(error) && error.response?.status === 403 && error.response?.data?.code === "ACCOUNT_SUSPENDED") {
           localStorage.removeItem("token");
           router.replace("/login");
@@ -61,6 +63,7 @@ export default function MainClientLayout({ children }: Props) {
           localStorage.removeItem("token");
           router.replace("/home");
         }
+        setLoading(false);
       }
     };
 
@@ -68,7 +71,7 @@ export default function MainClientLayout({ children }: Props) {
   }, [pathname, router]);
 
   if (loading) {
-    return <Spinner />;
+    return <SplashScreen />;
   }
 
   return <>{children}</>;
