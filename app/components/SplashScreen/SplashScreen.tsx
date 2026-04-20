@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 export default function SplashScreen() {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background overflow-hidden">
+    <div className="fixed inset-0 h-[100dvh] z-[9999] flex items-center justify-center bg-background overflow-hidden">
       {/* Premium Mesh Gradient Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#f5a623]/20 blur-[120px] animate-pulse" />

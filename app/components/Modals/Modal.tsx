@@ -66,7 +66,7 @@ export default function Modal({
             </div>
 
             {/* Scrollable Body - limits height to 80% of screen so it doesn't break on small devices */}
-            <div className="no-scrollbar custom-scrollbar max-h-[80vh] overflow-y-auto p-6">
+            <div className="no-scrollbar custom-scrollbar max-h-[80dvh] overflow-y-auto p-6">
               {children}
             </div>
             

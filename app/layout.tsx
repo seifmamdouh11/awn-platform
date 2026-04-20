@@ -29,8 +29,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} ${notoArabic.variable} antialiased h-screen overflow-hidden`}>
-        <div id="main-scroller" className="h-full w-full overflow-y-auto overflow-x-hidden">
+      <body className={`${poppins.variable} ${notoArabic.variable} antialiased min-h-[100dvh] overflow-hidden`}>
+        <div id="main-scroller" className="h-[100dvh] w-full overflow-y-auto overflow-x-hidden">
           <LangProvider>
             <MainClientLayout>
               <ThemeProvider>

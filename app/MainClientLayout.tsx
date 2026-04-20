@@ -34,7 +34,7 @@ export default function MainClientLayout({ children }: Props) {
       const token = localStorage.getItem("token");
 
       // Minimum delay of 4 seconds to showcase branding
-      const timerPromise = new Promise((resolve) => setTimeout(resolve, 4000));
+      const timerPromise = new Promise((resolve) => setTimeout(resolve, 3000));
 
       if (!token) {
         await timerPromise;
@@ -52,7 +52,7 @@ export default function MainClientLayout({ children }: Props) {
 
         // Wait for both API calls and the minimum timer
         await Promise.all([...requests, timerPromise]);
-        
+
         setLoading(false);
       } catch (error: any) {
         await timerPromise;
