@@ -40,47 +40,6 @@
 
 ---
 
-## 📁 Project Structure | هيكل المشروع
-
-```text
-awn-frontend/
-├── app/                  # Next.js App Router root
-│   ├── (protectedLayout) # Role-based layouts (Volunteer/Company/Admin)
-│   ├── Context/          # Global state management
-│   ├── Hooks/            # Custom reusable logic (Theme, Lang, etc.)
-│   ├── components/       # Reusable UI components
-│   ├── translations/     # Localization dictionary (AR/EN)
-│   └── utils/            # API wrappers and helper functions
-├── public/               # Static assets & branding
-└── postcss.config.mjs    # Modern CSS processing
-```
-
----
-
-## 🚀 Getting Started | نظام البدء
-
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/your-repo/awn-frontend.git
-    ```
-
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-
-3.  **Setup Environment Variables**:
-    Create a `.env.local` file and add your backend API URL:
-    ```env
-    NEXT_PUBLIC_API_URL=http://localhost:5000/api
-    ```
-
-4.  **Run the development server**:
-    ```bash
-    npm run dev
-    ```
-
----
 
 ## 🎨 Design Philosophy | فلسفة التصميم
 
