@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useLang } from "./Hooks/LangHook/LangHook";
-import SplashScreen from "./components/SplashScreen/SplashScreen";
 import { useRouter, usePathname } from "next/navigation";
 import api, { isAxiosError } from "./utils/api";
 
@@ -70,9 +69,6 @@ export default function MainClientLayout({ children }: Props) {
     checkAuth();
   }, [pathname, router]);
 
-  if (loading) {
-    return <SplashScreen />;
-  }
 
   return <>{children}</>;
 }

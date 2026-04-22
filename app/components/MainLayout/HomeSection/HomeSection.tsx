@@ -50,8 +50,8 @@ export default function HomeSection() {
           </motion.span>
 
           <motion.h1
-            initial={{ opacity: 0, y: 28 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ y: 28 }}
+            whileInView={{ y: 0 }}
             transition={{ duration: 0.55, delay: 0.15 }}
             viewport={{ once: true }}
             className="mt-6 text-4xl font-black uppercase leading-tight sm:text-5xl lg:text-6xl"

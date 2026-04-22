@@ -2,32 +2,14 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import api from "@/app/utils/api";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Pie, Bar, Line } from "react-chartjs-2";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { useLang } from "@/app/Hooks/LangHook/LangHook";
 import { analyticsTranslations } from "@/app/translations/analytics";
 
-ChartJS.register(
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend
-);
+const Pie = dynamic(() => import("../../../components/AnalyticsCharts").then(mod => mod.Pie), { ssr: false });
+const Bar = dynamic(() => import("../../../components/AnalyticsCharts").then(mod => mod.Bar), { ssr: false });
+const Line = dynamic(() => import("../../../components/AnalyticsCharts").then(mod => mod.Line), { ssr: false });
 
 type OverviewResponse = {
   total_opportunities: number;
