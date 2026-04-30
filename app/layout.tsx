@@ -5,6 +5,7 @@ import LangProvider from "./Hooks/LangHook/LangHook";
 import MainClientLayout from "./MainClientLayout";
 import ThemeProvider from "./Hooks/ThemeHook/ThemeProvider";
 import ScrollToTopButton from "./components/ScrollToTopButton/ScrollToTopButton";
+import { Analytics } from "@vercel/analytics/next";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </MainClientLayout>
           </LangProvider>
         </div>
+        <Analytics />
       </body>
     </html>
   );
