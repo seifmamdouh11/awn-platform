@@ -240,7 +240,7 @@ export default function CompanySubscriptionsPage() {
   };
 
   const getPlanName = (plan: SubscriptionPlan) => {
-    return planT.plans.company[plan.tier as 'PRO' | 'ELITE'] || plan.name;
+    return planT.plans.company.tiers[plan.tier as 'PRO' | 'ELITE'] || plan.name;
   };
 
   const getPlanDescription = (plan: SubscriptionPlan) => {
@@ -248,7 +248,7 @@ export default function CompanySubscriptionsPage() {
   };
 
   const getActivePlanName = (sub: UserSubscription) => {
-    return planT.plans.company[sub.tier as 'PRO' | 'ELITE'] || sub.plan_name;
+    return planT.plans.company.tiers[sub.tier as 'PRO' | 'ELITE'] || sub.plan_name;
   };
 
   if (loading) {
