@@ -5,8 +5,9 @@ import api from "@/app/utils/api";
 import Swal from "sweetalert2";
 import { useEventsCategories } from "@/app/Context/EventsCategories";
 import { useLang } from "@/app/Hooks/LangHook/LangHook";
+import { useLoggedInData } from "@/app/Context/LoggedInDataContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Star } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -32,6 +33,7 @@ type FormState = {
   commission_rate: string;
   start_time: string;
   end_time: string;
+  is_featured: boolean;
 };
 
 const translations: Record<
@@ -177,6 +179,9 @@ export default function OpportunityModal({
 }: Props) {
   const { categories } = useEventsCategories();
   const { lang } = useLang();
+  const { data } = useLoggedInData();
+  const activeSub = data?.active_subscription;
+
   const currentLang: Lang = lang === "ar" ? "ar" : "en";
   const t = translations[currentLang];
 
@@ -197,13 +202,16 @@ export default function OpportunityModal({
         : "draft",
     event_type: event?.event_type || "volunteer",
     compensation: event?.compensation ? String(event.compensation) : "0",
-    commission_rate: event?.commission_rate ? String(event.commission_rate) : "12",
+    commission_rate: event?.commission_rate
+      ? String(event.commission_rate)
+      : (activeSub?.benefits?.commission_rate !== undefined ? String(activeSub.benefits.commission_rate) : "12"),
     start_time: event?.start_time
       ? String(event.start_time).slice(0, 16).replace(" ", "T")
       : "",
     end_time: event?.end_time
       ? String(event.end_time).slice(0, 16).replace(" ", "T")
       : "",
+    is_featured: !!event?.is_featured,
   });
 
   const [form, setForm] = React.useState<FormState>(getInitialForm());
@@ -234,9 +242,10 @@ export default function OpportunityModal({
       status: "draft",
       event_type: "volunteer",
       compensation: "0",
-      commission_rate: "12",
+      commission_rate: activeSub?.benefits?.commission_rate !== undefined ? String(activeSub.benefits.commission_rate) : "12",
       start_time: "",
       end_time: "",
+      is_featured: false,
     });
   };
 
@@ -310,9 +319,10 @@ export default function OpportunityModal({
       status: form.status,
       event_type: form.event_type,
       compensation: Number(form.compensation) || 0,
-      commission_rate: Number(form.commission_rate) || 10,
+      commission_rate: Number(form.commission_rate) || 12,
       start_time: formatDateTimeForMySQL(form.start_time),
       end_time: formatDateTimeForMySQL(form.end_time),
+      is_featured: form.is_featured,
     };
 
     try {
@@ -559,19 +569,21 @@ export default function OpportunityModal({
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-bold text-primary">{(t as any).commission}</label>
                       <div className={`${inputClass} !bg-primary/10 border-primary/20 flex items-center font-bold text-primary`}>
-                        12%
+                        {form.commission_rate}%
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-bold text-foreground">{(t as any).netReward}</label>
                       <div className="h-[46px] flex items-center px-4 bg-background border border-foreground/10 rounded-xl text-foreground font-black text-lg">
-                        {Math.max(0, Number(form.compensation) * (1 - Number(form.commission_rate) / 100)).toFixed(2)}
+                        {Math.max(0, Number(form.compensation) * (1 - (Number(form.commission_rate) || 0) / 100)).toFixed(2)}
                         <span className="text-[10px] font-bold mx-1 opacity-60">EGP</span>
                       </div>
                     </div>
                   </div>
                 )}
+
+
 
                 {/* Timeline */}
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">

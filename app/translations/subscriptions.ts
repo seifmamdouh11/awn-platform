@@ -2,16 +2,20 @@ export const subscriptionTranslations = {
   en: {
     plans: {
       volunteer: {
-        PRO: "Volunteer PRO",
-        ELITE: "Volunteer Elite",
+        tiers: {
+          SILVER: "Silver Volunteer",
+          GOLD: "Gold Volunteer",
+        },
         descriptions: {
-          PRO: "0% withdrawal fees + priority support",
-          ELITE: "Maximum impact and 0% withdrawal fees."
+          SILVER: "0% withdrawal fees + Pro Badge",
+          GOLD: "0% withdrawal fees + Pro Badge + 24/7 support + priority in applications",
         }
       },
       company: {
-        PRO: "Company Growth",
-        ELITE: "Company Enterprise",
+        tiers: {
+          PRO: "Company Growth",
+          ELITE: "Company Enterprise",
+        },
         descriptions: {
           PRO: "Reduced 8% commission + 3 featured posts",
           ELITE: "0% commission + unlimited featured posts"
@@ -22,16 +26,20 @@ export const subscriptionTranslations = {
   ar: {
     plans: {
       volunteer: {
-        PRO: "عضوية برو للمتطوعين",
-        ELITE: "عضوية النخبة للمتطوعين",
+        tiers: {
+          SILVER: "المتطوع الفضي",
+          GOLD: "المتطوع الذهبي",
+        },
         descriptions: {
-          PRO: "0% رسوم سحب + دعم فني ذو أولوية",
-          ELITE: "تأثير أقصى و 0% رسوم سحب."
+          SILVER: "0% رسوم سحب + شارة المحترف",
+          GOLD: "0% رسوم سحب + شارة المحترف + دعم 24/7 + أولوية في الطلبات",
         }
       },
       company: {
-        PRO: "عضوية النمو للشركات",
-        ELITE: "عضوية النخبة (Enterprise)",
+        tiers: {
+          PRO: "عضوية النمو للشركات",
+          ELITE: "عضوية النخبة (Enterprise)",
+        },
         descriptions: {
           PRO: "عمولة مخفضة 8% + 3 فرص مميزة",
           ELITE: "0% عمولة + فرص مميزة غير محدودة"

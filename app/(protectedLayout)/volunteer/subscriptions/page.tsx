@@ -23,8 +23,8 @@ import { SubscriptionPlan, UserSubscription } from "@/app/type/subscription";
 import { subscriptionTranslations } from "@/app/translations/subscriptions";
 
 const TIER_ORDER: Record<string, number> = {
-  PRO: 1,
-  ELITE: 2,
+  SILVER: 1,
+  GOLD: 2,
 };
 
 const translations = {
@@ -49,11 +49,14 @@ const translations = {
     benefits: {
       withdrawal: "0% Withdrawal Fees",
       priority: "Priority Support",
-      badge: "PRO Volunteer Badge",
-      earlyAccess: "Early Access to Big Events"
+      badge: "Pro Badge",
+      earlyAccess: "Early Access to Big Events",
+      support247: "24/7 Support",
+      priorityApps: "Priority in Applications"
     },
     confirmTitle: "Confirm Subscription",
     confirmText: "Are you sure you want to subscribe to {plan} for {price} EGP?",
+    upgradeText: "You are upgrading to {plan}. A credit for your remaining days will be applied automatically.",
     cancel: "Cancel",
     confirm: "Yes, Subscribe",
     walletBalance: "Wallet Balance",
@@ -105,11 +108,14 @@ const translations = {
     benefits: {
       withdrawal: "0% مصاريف سحب",
       priority: "دعم فني ذو أولوية",
-      badge: "شارة متطوع PRO",
-      earlyAccess: "وصول مبكر للفرص الكبيرة"
+      badge: "شارة المحترف",
+      earlyAccess: "وصول مبكر للفرص الكبيرة",
+      support247: "دعم فني 24/7",
+      priorityApps: "أولوية في الطلبات"
     },
     confirmTitle: "تأكيد الاشتراك",
     confirmText: "هل أنت متأكد من رغبتك في الاشتراك في {plan} بمبلغ {price} جنيه؟",
+    upgradeText: "سوف يتم ترقية حسابك إلى {plan}. سيتم خصم مبلغ الخطة ناقص رصيد الأيام المتبقية من اشتراكك الحالي.",
     cancel: "إلغاء",
     confirm: "نعم، اشترك",
     walletBalance: "رصيد المحفظة",
@@ -204,12 +210,12 @@ export default function SubscriptionsPage() {
 
   const getPlanStatus = (plan: SubscriptionPlan): 'current' | 'upgrade' | 'downgrade' | 'new' => {
     if (!activeSub) return 'new';
-    const planLevel = TIER_ORDER[plan.tier] ?? 0;
-    const activeLevel = TIER_ORDER[activeSub.tier] ?? 0;
+    const planLevel = TIER_ORDER[plan.tier?.toUpperCase()] ?? 0;
+    const activeLevel = TIER_ORDER[activeSub.tier?.toUpperCase()] ?? 0;
     const planIsMonthly = plan.duration_days <= 31;
 
     // Exact match: same tier AND same cycle
-    if (plan.tier === activeSub.tier && planIsMonthly === isActiveMonthly) return 'current';
+    if (plan.tier?.toUpperCase() === activeSub.tier?.toUpperCase() && planIsMonthly === isActiveMonthly) return 'current';
 
     // Higher tier = always upgrade
     if (planLevel > activeLevel) return 'upgrade';
@@ -218,7 +224,7 @@ export default function SubscriptionsPage() {
     if (planLevel < activeLevel) return 'downgrade';
 
     // Same tier, different cycle
-    if (plan.tier === activeSub.tier) {
+    if (plan.tier?.toUpperCase() === activeSub.tier?.toUpperCase()) {
       if (!planIsMonthly && isActiveMonthly) return 'upgrade';  // monthly → annual ✅
       if (planIsMonthly && !isActiveMonthly) return 'downgrade'; // annual → monthly 🔒
     }
@@ -227,15 +233,18 @@ export default function SubscriptionsPage() {
   };
 
   const getPlanName = (plan: SubscriptionPlan) => {
-    return planT.plans.volunteer[plan.tier as 'PRO' | 'ELITE'] || plan.name;
+    // @ts-ignore
+    return planT.plans.volunteer.tiers[plan.tier] || plan.name;
   };
 
   const getPlanDescription = (plan: SubscriptionPlan) => {
-    return planT.plans.volunteer.descriptions[plan.tier as 'PRO' | 'ELITE'] || plan.description;
+    // @ts-ignore
+    return planT.plans.volunteer.descriptions[plan.tier] || plan.description;
   };
 
   const getActivePlanName = (sub: UserSubscription) => {
-    return planT.plans.volunteer[sub.tier as 'PRO' | 'ELITE'] || sub.plan_name;
+    // @ts-ignore
+    return planT.plans.volunteer.tiers[sub.tier] || sub.plan_name;
   };
 
   const handleSubscribe = async (plan: SubscriptionPlan) => {
@@ -260,9 +269,13 @@ export default function SubscriptionsPage() {
     }
 
     const planDisplayName = getPlanName(plan);
+    const confirmMessage = isUpgrade 
+      ? t.upgradeText.replace("{plan}", planDisplayName)
+      : t.confirmText.replace("{plan}", planDisplayName).replace("{price}", plan.price.toString()) + ` ${t.currency}`;
+
     const { isConfirmed } = await Swal.fire({
       title: t.confirmTitle,
-      text: t.confirmText.replace("{plan}", planDisplayName).replace("{price}", plan.price.toString()) + ` ${t.currency}`,
+      text: confirmMessage,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: t.confirm,
@@ -487,24 +500,47 @@ export default function SubscriptionsPage() {
                 </div>
 
                 <div className="space-y-4 pt-4 border-t border-foreground/5">
-                  <div className="flex items-start gap-3">
-                    <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500">
-                      <Check size={12} strokeWidth={4} />
+                  {plan.benefits.withdrawal_fee === 0 && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500">
+                        <Check size={12} strokeWidth={4} />
+                      </div>
+                      <span className="text-sm font-bold text-foreground/70">{t.benefits.withdrawal}</span>
                     </div>
-                    <span className="text-sm font-bold text-foreground/70">{t.benefits.withdrawal}</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500">
-                      <Check size={12} strokeWidth={4} />
+                  )}
+                  {plan.benefits.pro_badge && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500">
+                        <Check size={12} strokeWidth={4} />
+                      </div>
+                      <span className="text-sm font-bold text-foreground/70">{t.benefits.badge}</span>
                     </div>
-                    <span className="text-sm font-bold text-foreground/70">{t.benefits.priority}</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500">
-                      <Check size={12} strokeWidth={4} />
+                  )}
+                  {plan.benefits.support_24_7 && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500">
+                        <Check size={12} strokeWidth={4} />
+                      </div>
+                      <span className="text-sm font-bold text-foreground/70">{t.benefits.support247}</span>
                     </div>
-                    <span className="text-sm font-bold text-foreground/70">{t.benefits.badge}</span>
-                  </div>
+                  )}
+                  {plan.benefits.priority_applications && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500">
+                        <Check size={12} strokeWidth={4} />
+                      </div>
+                      <span className="text-sm font-bold text-foreground/70">{t.benefits.priorityApps}</span>
+                    </div>
+                  )}
+                  {/* Fallback for old priority field */}
+                  {plan.benefits.priority && !plan.benefits.support_24_7 && (
+                    <div className="flex items-start gap-3">
+                      <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-500">
+                        <Check size={12} strokeWidth={4} />
+                      </div>
+                      <span className="text-sm font-bold text-foreground/70">{t.benefits.priority}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

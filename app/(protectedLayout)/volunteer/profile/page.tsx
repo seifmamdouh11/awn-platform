@@ -17,6 +17,7 @@ import {
   FaLayerGroup,
   FaArrowRight,
   FaCircleCheck,
+  FaCrown,
 } from "react-icons/fa6";
 import { useLoggedInData } from "@/app/Context/LoggedInDataContext";
 import api from "@/app/utils/api";
@@ -112,13 +113,16 @@ export default function VolunteerProfilePage() {
   const [allSkills, setAllSkills] = useState<Skill[]>([]);
   const [selectedSkillIds, setSelectedSkillIds] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
 
   const fetchData = useCallback(async () => {
     try {
       const [skillsRes, appsRes, ratingsRes, subRes] = await Promise.all([
         api.get(`/volunteer-skills/me`),
         api.get(`/volunteer-applications/me?limit=3`),
-        api.get(`/ratings/target/me?limit=5`),
+        api.get(`/ratings/target/me`),
         api.get(`/subscriptions/me`),
       ]);
 
@@ -145,6 +149,9 @@ export default function VolunteerProfilePage() {
     setDateOfBirth(data?.date_of_birth?.split("T")[0] || "");
     setNationalId(data?.national_id || "");
     setSelectedSkillIds(skills.map((s) => s.id));
+    setProfileImage(null);
+    setImagePreview(data?.profile_picture || null);
+
 
     try {
       const response = await api.get(`/skills`);
@@ -160,24 +167,43 @@ export default function VolunteerProfilePage() {
     );
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+
   const handleSaveProfile = async () => {
     try {
       setIsSaving(true);
 
-      const profilePayload = {
-        first_name: firstName,
-        last_name: lastName,
-        phone: phone,
-        description: description,
-        gender: gender,
-        date_of_birth: dateOfBirth,
-        national_id: nationalId,
-      };
+      const formData = new FormData();
+      formData.append("first_name", firstName);
+      formData.append("last_name", lastName);
+      formData.append("phone", phone);
+      formData.append("description", description);
+      formData.append("gender", gender);
+      formData.append("date_of_birth", dateOfBirth);
+      formData.append("national_id", nationalId);
+
+      if (profileImage) {
+        formData.append("profile_picture", profileImage);
+      }
 
       await Promise.all([
-        api.put(`/volunteers/me`, profilePayload),
+        api.put(`/volunteers/me`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        }),
         api.put(`/volunteer-skills/me`, { skill_ids: selectedSkillIds }),
       ]);
+
 
       setIsModalOpen(false);
       await fetchData();
@@ -222,7 +248,8 @@ export default function VolunteerProfilePage() {
   }, [subscription]);
 
   const getActivePlanName = (sub: Subscription) => {
-    return planT.plans.volunteer[sub.tier as 'PRO' | 'ELITE'] || sub.plan_name;
+    // @ts-ignore
+    return planT.plans.volunteer.tiers[sub.tier] || sub.plan_name;
   };
 
   const subscriptionTheme = useMemo(() => {
@@ -232,11 +259,17 @@ export default function VolunteerProfilePage() {
         glow: "shadow-primary/30",
         icon: <FaCircleCheck className="text-white" />,
       };
-    if (subscription.tier === "ELITE")
+    if (subscription.tier === "ELITE" || subscription.tier === "GOLD")
       return {
         color: "from-primary to-amber-500",
         glow: "shadow-primary/40",
         icon: <FaStar className="text-white" />,
+      };
+    if (subscription.tier === "SILVER")
+      return {
+        color: "from-slate-400 to-slate-600",
+        glow: "shadow-slate-400/30",
+        icon: <FaCrown className="text-white" />,
       };
     return {
       color: "from-muted/60 to-muted/80",
@@ -278,8 +311,17 @@ export default function VolunteerProfilePage() {
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary via-primary/40 to-transparent animate-spin-slow opacity-10 blur-xl" />
               <div className="relative h-32 w-32 md:h-44 md:w-44 rounded-full bg-background p-1.5 shadow-2xl border border-primary/20 dark:border-white/10">
                 <div className="flex h-full w-full items-center justify-center rounded-full bg-soft-bg dark:bg-soft-bg/20 text-4xl md:text-6xl font-black text-primary overflow-hidden">
-                  {initials || <FaUser className="opacity-30 text-muted" />}
+                  {data?.profile_picture ? (
+                    <img
+                      src={data.profile_picture}
+                      alt={`${data.first_name} ${data.last_name}`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    initials || <FaUser className="opacity-30 text-muted" />
+                  )}
                 </div>
+
               </div>
               <motion.div
                 initial={{ scale: 0 }}
@@ -294,10 +336,21 @@ export default function VolunteerProfilePage() {
             <div className="flex-1 text-center md:text-start space-y-6 w-full">
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                 <div className="space-y-3">
-                  <h1 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight">
+                  <h1 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight flex items-center gap-3">
                     {data?.first_name}{" "}
                     <span className="text-primary">{data?.last_name}</span>
+                    {data?.is_id_verified === 1 && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg shadow-blue-500/20"
+                        title={t.sections.verified}
+                      >
+                        <FaCircleCheck size={14} className="md:size-5" />
+                      </motion.div>
+                    )}
                   </h1>
+
 
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                     <div
@@ -574,7 +627,35 @@ export default function VolunteerProfilePage() {
         maxWidth="max-w-2xl"
       >
         <div className="space-y-6 py-4">
+          {/* Profile Image Edit */}
+          <div className="flex flex-col items-center gap-4 mb-6">
+            <div className="relative group">
+              <div className="h-24 w-24 md:h-32 md:w-32 rounded-full border-4 border-primary/20 overflow-hidden bg-soft-bg dark:bg-soft-bg/20 flex items-center justify-center">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
+                ) : (
+                  <FaUser className="text-muted text-4xl opacity-20" />
+                )}
+              </div>
+              <label
+                htmlFor="profile-upload"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              >
+                <FaCamera size={20} />
+              </label>
+              <input
+                id="profile-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted">{t.modal.changeAvatar}</p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-1">
                 {t.modal.firstName}
@@ -605,7 +686,8 @@ export default function VolunteerProfilePage() {
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full rounded-xl border border-foreground/10 bg-foreground/5 px-4 py-3 text-sm font-bold text-foreground transition-all focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none appearance-none"
+                  disabled
+                  className="w-full rounded-xl border border-foreground/10 bg-foreground/5 px-4 py-3 text-sm font-bold text-foreground transition-all focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none appearance-none cursor-not-allowed opacity-60"
                 >
                   <option value="" disabled>
                     {t.modal.gender}
@@ -613,6 +695,7 @@ export default function VolunteerProfilePage() {
                   <option value="male">{t.sections.male}</option>
                   <option value="female">{t.sections.female}</option>
                 </select>
+
                 <div className={`absolute top-1/2 -translate-y-1/2 pointer-events-none text-muted ${isRTL ? 'left-4' : 'right-4'}`}>
                   <FaPen size={10} className="opacity-40" />
                 </div>
@@ -648,8 +731,10 @@ export default function VolunteerProfilePage() {
                 type="text"
                 value={nationalId}
                 onChange={(e) => setNationalId(e.target.value)}
-                className="w-full rounded-xl border border-foreground/10 bg-foreground/5 px-4 py-3 text-sm font-bold text-foreground transition-all focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none"
+                disabled
+                className="w-full rounded-xl border border-foreground/10 bg-foreground/5 px-4 py-3 text-sm font-bold text-foreground transition-all focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none cursor-not-allowed opacity-60"
               />
+
             </div>
             <div className="md:col-span-2 space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-1">
@@ -733,9 +818,7 @@ export default function VolunteerProfilePage() {
         maxWidth="max-w-2xl"
       >
         {(() => {
-          const avgRating = ratings.length
-            ? ratings.reduce((s, r) => s + r.rating_value, 0) / ratings.length
-            : 0;
+          const avgRating = Number(data?.average_rating || 0);
           const ratingCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
           ratings.forEach(r => { ratingCounts[r.rating_value] = (ratingCounts[r.rating_value] || 0) + 1; });
 
@@ -754,7 +837,7 @@ export default function VolunteerProfilePage() {
                       <p className="text-[9px] font-black uppercase tracking-[0.3em] opacity-40 relative z-10">{isRTL ? "متوسط" : "Avg Rating"}</p>
                       <p className="text-5xl font-black tabular-nums relative z-10">{avgRating.toFixed(1)}</p>
                       <div className="flex gap-0.5 relative z-10">
-                        {[1,2,3,4,5].map(s => (
+                        {[1, 2, 3, 4, 5].map(s => (
                           <FaStar key={s} size={10} className={s <= Math.round(avgRating) ? "text-amber-400" : "text-white/20"} />
                         ))}
                       </div>
@@ -763,7 +846,7 @@ export default function VolunteerProfilePage() {
 
                     {/* Breakdown bars */}
                     <div className="col-span-3 flex flex-col justify-center gap-1.5 p-4 rounded-[2rem] border border-foreground/10 bg-foreground/5">
-                      {[5,4,3,2,1].map(star => {
+                      {[5, 4, 3, 2, 1].map(star => {
                         const count = ratingCounts[star] || 0;
                         const pct = ratings.length > 0 ? (count / ratings.length) * 100 : 0;
                         return (
@@ -793,7 +876,7 @@ export default function VolunteerProfilePage() {
                     >
                       {isRTL ? "الكل" : "All"}
                     </button>
-                    {[5,4,3,2,1].map(s => (
+                    {[5, 4, 3, 2, 1].map(s => (
                       <button
                         key={s}
                         onClick={() => setModalFilter(modalFilter === s ? null : s)}

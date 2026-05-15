@@ -100,10 +100,14 @@ export default function CompanyNavbar() {
     <div className="flex flex-col h-full" dir={isRTL ? "rtl" : "ltr"}>
       {/* Brand */}
       <div className={`flex items-center gap-3 mb-8 cursor-default overflow-hidden ${collapsed && 'justify-center'}`}>
-        <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-[#febc5a] to-[#d97706] flex items-center justify-center shadow-lg shadow-[#febc5a]/20">
-          <span className="font-black text-black text-xl">
-            {data?.company_name?.charAt(0)?.toUpperCase() || "C"}
-          </span>
+        <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-[#febc5a] to-[#d97706] flex items-center justify-center shadow-lg shadow-[#febc5a]/20 overflow-hidden">
+          {data?.logo_url ? (
+            <img src={data.logo_url} alt={data.company_name} className="h-full w-full object-cover" />
+          ) : (
+            <span className="font-black text-black text-xl">
+              {data?.company_name?.charAt(0)?.toUpperCase() || "C"}
+            </span>
+          )}
         </div>
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0">
@@ -233,8 +237,12 @@ export default function CompanyNavbar() {
           <Menu size={22} />
         </button>
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#febc5a] to-[#d97706] flex items-center justify-center">
-            <span className="font-black text-black text-sm">{data?.company_name?.charAt(0)?.toUpperCase() || "C"}</span>
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#febc5a] to-[#d97706] flex items-center justify-center overflow-hidden">
+            {data?.logo_url ? (
+              <img src={data.logo_url} alt={data.company_name} className="h-full w-full object-cover" />
+            ) : (
+              <span className="font-black text-black text-sm">{data?.company_name?.charAt(0)?.toUpperCase() || "C"}</span>
+            )}
           </div>
           <span className="font-bold text-foreground text-sm">{data?.company_name || "Company"}</span>
         </div>

@@ -8,6 +8,8 @@ import { settingsTranslations } from "@/app/translations/settings";
 import SettingsHeader from "./components/SettingsHeader";
 import CompanySummaryCard from "./components/CompanySummaryCard";
 import CompanyFormCard from "./components/CompanyFormCard";
+import LogoUploadCard from "./components/LogoUploadCard";
+import CompanyDocCard from "./components/CompanyDocCard";
 
 export type CompanyData = {
   company_name: string;
@@ -22,6 +24,9 @@ export type CompanyData = {
   tax_id: string | null;
   status: string | null;
   logo_url: string | null;
+  doc_url: string | null;
+  doc_note: string | null;
+  is_verified: boolean;
   company_rating?: number;
 };
 
@@ -31,6 +36,8 @@ export default function SettingsPage() {
 
   const [company, setCompany] = useState<CompanyData | null>(null);
   const [form, setForm] = useState<CompanyData | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [docFile, setDocFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -103,6 +110,8 @@ export default function SettingsPage() {
 
     if (result.isConfirmed) {
       setForm(company);
+      setLogoFile(null);
+      setDocFile(null);
       setIsEditing(false);
     }
   };
@@ -113,26 +122,30 @@ export default function SettingsPage() {
     try {
       setSaving(true);
 
-      const payload = {
-        company_name: form.company_name,
-        phone: form.phone,
-        website: form.website || null,
-        city: form.city || null,
-        address: form.address || null,
-        description: form.description || null,
-        industry: form.industry || null,
-        company_size: form.company_size || null,
-      };
+      const formData = new FormData();
+      formData.append("company_name", form.company_name);
+      formData.append("phone", form.phone);
+      if (form.website) formData.append("website", form.website);
+      if (form.city) formData.append("city", form.city);
+      if (form.address) formData.append("address", form.address);
+      if (form.description) formData.append("description", form.description);
+      if (form.industry) formData.append("industry", form.industry);
+      if (form.company_size) formData.append("company_size", form.company_size);
+      if (form.doc_note) formData.append("doc_note", form.doc_note);
+      
+      if (logoFile) formData.append("company_logo", logoFile);
+      if (docFile) formData.append("company_doc", docFile);
 
-      await api.put("/companies/me", payload);
+      await api.put("/companies/me", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-      const updatedCompany = {
-        ...company,
-        ...payload,
-      } as CompanyData;
-
-      setCompany(updatedCompany);
-      setForm(updatedCompany);
+      // Refetch to get updated URLs from backend
+      const res = await api.get("/companies/me");
+      setCompany(res.data);
+      setForm(res.data);
+      setLogoFile(null);
+      setDocFile(null);
       setIsEditing(false);
 
       await Swal.fire({
@@ -213,11 +226,20 @@ export default function SettingsPage() {
             statusLabel={t.accountStatus}
             statusValue={statusText}
             companyRating={company?.company_rating || undefined}
+            logoUrl={company?.logo_url}
+            isVerified={company?.is_verified}
           />
 
+          <LogoUploadCard
+            currentLogo={company?.logo_url || null}
+            companyName={company?.company_name || ""}
+            isEditing={isEditing}
+            onFileSelect={setLogoFile}
+            lang={lang as "ar" | "en"}
+          />
         </aside>
 
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           <CompanyFormCard
             title={t.companyInfo}
             fields={t.fields}
@@ -225,6 +247,16 @@ export default function SettingsPage() {
             statusText={statusText}
             isEditing={isEditing}
             onChange={handleChange}
+          />
+
+          <CompanyDocCard
+            currentDoc={company?.doc_url || null}
+            docNote={form?.doc_note || null}
+            isVerified={company?.is_verified || false}
+            isEditing={isEditing}
+            onFileSelect={setDocFile}
+            onNoteChange={(note) => setForm(prev => prev ? { ...prev, doc_note: note } : null)}
+            lang={lang as "ar" | "en"}
           />
         </div>
       </div>

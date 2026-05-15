@@ -35,6 +35,7 @@ type Opportunity = {
   created_at: string;
   updated_at: string;
   company_name?: string;
+  company_verified?: boolean | number;
   company_rating?: number;
   reward?: number;
 };
@@ -323,6 +324,14 @@ export default function VolunteerOpportunityDetailsPage() {
                 <span className="text-lg font-semibold text-foreground/80">
                   {opportunity.company_name}
                 </span>
+                {!!opportunity.company_verified && (
+                  <span className="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-3 py-1 text-xs font-bold tracking-wide text-blue-600 dark:text-blue-400 border border-blue-500/20" title={isArabic ? "شركة موثّقة" : "Verified Company"}>
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1.3 14.29L7.7 12.3a.996.996 0 111.41-1.41l1.59 1.59 4.29-4.3a.996.996 0 111.41 1.42l-5 5a.996.996 0 01-1.41 0l-.29-.31z"/>
+                    </svg>
+                    {isArabic ? "موثّقة" : "Verified"}
+                  </span>
+                )}
                 {opportunity.company_rating ? (
                   <span className="flex items-center gap-1.5 rounded-full bg-yellow-500/10 px-3 py-1 text-sm font-bold tracking-wide text-yellow-600 dark:text-yellow-400 border border-yellow-500/20">
                     {opportunity.company_rating} <FaStar size={14} className="mb-0.5" />

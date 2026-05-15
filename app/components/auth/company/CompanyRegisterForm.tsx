@@ -11,7 +11,7 @@ import Swal from "sweetalert2";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Building2 } from "lucide-react";
+import { ArrowLeft, Building2, FileText } from "lucide-react";
 
 type CompanySize = "1-10" | "11-50" | "51-200" | "201-500" | "500+";
 
@@ -28,7 +28,7 @@ type FormValues = {
   city?: string;
   address?: string;
   tax_id?: string;
-  logo_url?: string;
+  doc_note?: string;
 };
 
 export default function CompanyRegisterForm() {
@@ -38,6 +38,8 @@ export default function CompanyRegisterForm() {
 
   const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [docFile, setDocFile] = useState<File | null>(null);
 
   const emailRegex = /^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/;
   const phoneRegex = /^[0-9+\-\s]{8,20}$/;
@@ -80,21 +82,20 @@ export default function CompanyRegisterForm() {
     setServerError(null);
     setLoading(true);
 
-    const { confirm_password, ...payload } = data;
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && key !== "confirm_password") {
+        formData.append(key, value);
+      }
+    });
 
-    const cleanedPayload = {
-      ...payload,
-      industry: payload.industry?.trim() || null,
-      description: payload.description?.trim() || null,
-      website: payload.website?.trim() || null,
-      city: payload.city?.trim() || null,
-      address: payload.address?.trim() || null,
-      tax_id: payload.tax_id?.trim() || null,
-      logo_url: payload.logo_url?.trim() || null,
-    };
+    if (logoFile) formData.append("company_logo", logoFile);
+    if (docFile) formData.append("company_doc", docFile);
 
     try {
-      await api.post("/companies/register", cleanedPayload);
+      await api.post("/companies/register", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       await Swal.fire({
         title: t.successTitle,
@@ -551,7 +552,7 @@ export default function CompanyRegisterForm() {
                   className="space-y-2"
                   initial={{ opacity: 0, y: 14 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.3, delay: 0.05 }}
                   viewport={{ once: true }}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -572,50 +573,13 @@ export default function CompanyRegisterForm() {
                   <motion.input
                     id="website"
                     placeholder={t.placeholders.website}
-                    className={`${inputBase} ${errors.website ? inputError : inputIdle}`}
+                    className={`${inputBase} ${errors.website ? inputError : inputIdle} md:col-span-2`}
                     whileFocus={{ scale: 1.01 }}
                     transition={{ duration: 0.2 }}
                     {...register("website", {
                       pattern: {
                         value: urlRegex,
                         message: t.errors.invalidWebsite,
-                      },
-                    })}
-                  />
-                </motion.div>
-
-                <motion.div
-                  className="space-y-2"
-                  initial={{ opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.05 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <label
-                      htmlFor="logo_url"
-                      className="text-sm font-semibold text-foreground/85"
-                    >
-                      {t.formElements.logoUrl}
-                    </label>
-
-                    {errors.logo_url && (
-                      <p className="text-xs font-medium text-red-500">
-                        {errors.logo_url.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <motion.input
-                    id="logo_url"
-                    placeholder={t.placeholders.logoUrl}
-                    className={`${inputBase} ${errors.logo_url ? inputError : inputIdle}`}
-                    whileFocus={{ scale: 1.01 }}
-                    transition={{ duration: 0.2 }}
-                    {...register("logo_url", {
-                      pattern: {
-                        value: urlRegex,
-                        message: t.errors.invalidLogoUrl,
                       },
                     })}
                   />
@@ -697,6 +661,104 @@ export default function CompanyRegisterForm() {
                     })}
                   />
                 </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Verification Documents */}
+            <motion.div
+              className="space-y-4"
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.18 }}
+              viewport={{ once: true }}
+            >
+              <div className="border-t border-foreground/10 pt-5">
+                <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground/55">
+                  {t.sections.verification}
+                </h4>
+              </div>
+
+              {/* Requirements hint */}
+              <div className="rounded-2xl bg-[#febc5a]/5 border border-[#febc5a]/20 p-4">
+                <h5 className="text-[11px] font-bold uppercase tracking-wider text-[#febc5a] mb-2">{t.docRequirementsTitle}</h5>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+                  {t.docRequirements.map((req: any, i: number) => (
+                    <li key={i} className="flex items-center gap-2 text-[11px] font-medium text-foreground/60">
+                      <div className="h-1 w-1 rounded-full bg-[#febc5a] shrink-0" />
+                      {req}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* Logo Upload */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-foreground/85">
+                    {t.formElements.logo}
+                  </label>
+                  <div 
+                    className={`flex items-center gap-3 p-3 rounded-2xl border-2 border-dashed ${logoFile ? 'border-[#febc5a]/50 bg-[#febc5a]/5' : 'border-foreground/10 bg-foreground/[0.02] hover:border-[#febc5a]/30'} transition-all relative overflow-hidden cursor-pointer`}
+                    onClick={() => document.getElementById("logo-upload")?.click()}
+                  >
+                    <div className="h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/40 overflow-hidden">
+                      {logoFile ? (
+                        <img src={URL.createObjectURL(logoFile)} alt="Preview" className="h-full w-full object-cover" />
+                      ) : (
+                        <Building2 size={18} />
+                      )}
+                    </div>
+                    <p className="text-xs font-medium text-foreground/60 truncate">
+                      {logoFile ? logoFile.name : (lang === "ar" ? "ارفع شعار الشركة" : "Upload company logo")}
+                    </p>
+                    <input 
+                      id="logo-upload"
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                    />
+                  </div>
+                </div>
+
+                {/* Doc Upload */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-foreground/85">
+                    {t.formElements.companyDoc}
+                  </label>
+                  <div 
+                    className={`flex items-center gap-3 p-3 rounded-2xl border-2 border-dashed ${docFile ? 'border-[#febc5a]/50 bg-[#febc5a]/5' : 'border-foreground/10 bg-foreground/[0.02] hover:border-[#febc5a]/30'} transition-all relative overflow-hidden cursor-pointer`}
+                    onClick={() => document.getElementById("doc-upload")?.click()}
+                  >
+                    <div className="h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/40">
+                      <FileText size={18} />
+                    </div>
+                    <p className="text-xs font-medium text-foreground/60 truncate">
+                      {docFile ? docFile.name : (lang === "ar" ? "ارفع مستند التسجيل" : "Upload registration doc")}
+                    </p>
+                    <input 
+                      id="doc-upload"
+                      type="file" 
+                      accept=".pdf,image/*" 
+                      className="hidden" 
+                      onChange={(e) => setDocFile(e.target.files?.[0] || null)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Doc Note */}
+              <div className="space-y-2">
+                <label htmlFor="doc_note" className="text-sm font-semibold text-foreground/85">
+                  {t.formElements.docNote}
+                </label>
+                <textarea
+                  id="doc_note"
+                  placeholder={lang === "ar" ? "أي ملاحظات إضافية بخصوص التوثيق..." : "Any additional notes for verification..."}
+                  className={textareaBase + " " + textareaIdle}
+                  rows={2}
+                  {...register("doc_note")}
+                />
               </div>
             </motion.div>
 
@@ -846,6 +908,7 @@ const translations = {
     sections: {
       companyInfo: "Company information",
       contact: "Contact details",
+      verification: "Verification documents",
       security: "Security",
     },
     cardList: {
@@ -871,7 +934,9 @@ const translations = {
       city: "City",
       address: "Address",
       taxId: "Tax ID",
-      logoUrl: "Logo URL",
+      logo: "Company Logo",
+      companyDoc: "Registration Document (PDF/Image)",
+      docNote: "Document Notes",
       password: "Password",
       confirmPassword: "Confirm password",
     },
@@ -922,6 +987,12 @@ const translations = {
     ok: "Ok",
     somethingWentWrong: "Something went wrong",
     goHome: "Back to Home",
+    docRequirementsTitle: "Required Documents for Verification",
+    docRequirements: [
+      "Commercial Register / Operating License",
+      "Tax Identification certificate",
+      "Official ID of the representative",
+    ],
   },
   ar: {
     badge: "بوابة الشركات",
@@ -933,6 +1004,7 @@ const translations = {
     sections: {
       companyInfo: "بيانات الشركة",
       contact: "بيانات التواصل",
+      verification: "مستندات التوثيق",
       security: "الأمان",
     },
     cardList: {
@@ -958,7 +1030,9 @@ const translations = {
       city: "المدينة",
       address: "العنوان",
       taxId: "الرقم الضريبي",
-      logoUrl: "رابط الشعار",
+      logo: "شعار الشركة",
+      companyDoc: "مستند التسجيل (PDF/صورة)",
+      docNote: "ملاحظات المستند",
       password: "كلمة المرور",
       confirmPassword: "تأكيد كلمة المرور",
     },
@@ -1008,5 +1082,11 @@ const translations = {
     ok: "حسناً",
     somethingWentWrong: "حدث خطأ ما",
     goHome: "العودة للرئيسية",
+    docRequirementsTitle: "المستندات المطلوبة للتوثيق",
+    docRequirements: [
+      "السجل التجاري / رخصة العمل",
+      "شهادة الرقم الضريبي",
+      "الهوية الرسمية للممثل القانوني",
+    ],
   },
 } as const;

@@ -131,9 +131,14 @@ export default function VolunteerNavbar() {
     <div className="flex flex-col h-full" dir={isRTL ? "rtl" : "ltr"}>
       {/* Brand */}
       <div className={`flex items-center gap-3 mb-8 cursor-default overflow-hidden ${collapsed && 'justify-center'}`}>
-        <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-[#febc5a] to-[#d97706] flex items-center justify-center shadow-lg shadow-[#febc5a]/20">
-          <span className="font-black text-black text-xl">{initial}</span>
+        <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-[#febc5a] to-[#d97706] flex items-center justify-center shadow-lg shadow-[#febc5a]/20 overflow-hidden">
+          {data?.profile_picture ? (
+            <img src={data.profile_picture} alt={fullName} className="h-full w-full object-cover" />
+          ) : (
+            <span className="font-black text-black text-xl">{initial}</span>
+          )}
         </div>
+
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-w-0 flex-1">
             <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">
@@ -384,8 +389,12 @@ export default function VolunteerNavbar() {
           <Menu size={22} />
         </button>
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#febc5a] to-[#d97706] flex items-center justify-center">
-            <span className="font-black text-black text-sm">{initial}</span>
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#febc5a] to-[#d97706] flex items-center justify-center overflow-hidden">
+            {data?.profile_picture ? (
+              <img src={data.profile_picture} alt={fullName} className="h-full w-full object-cover" />
+            ) : (
+              <span className="font-black text-black text-sm">{initial}</span>
+            )}
           </div>
           <span className="font-bold text-foreground text-sm">{fullName}</span>
         </div>

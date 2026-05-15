@@ -1,7 +1,7 @@
 export interface SubscriptionPlan {
   id: number;
   name: string;
-  tier: 'PRO' | 'ELITE';
+  tier: 'SILVER' | 'GOLD' | 'PRO' | 'ELITE';
   user_type: 'volunteer' | 'company';
   description: string;
   price: number;

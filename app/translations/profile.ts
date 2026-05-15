@@ -32,7 +32,9 @@ export const profileTranslations = {
       daysLeft: "days left",
       male: "Male",
       female: "Female",
+      verified: "ID Verified",
     },
+
     modal: {
       title: "Edit Profile",
       changeAvatar: "Change Avatar",
@@ -88,7 +90,9 @@ export const profileTranslations = {
       daysLeft: "يوم متبقي",
       male: "ذكر",
       female: "أنثى",
+      verified: "تم توثيق الهوية",
     },
+
     modal: {
       title: "تعديل الملف الشخصي",
       changeAvatar: "تغيير الصورة",

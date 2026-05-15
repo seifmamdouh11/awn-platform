@@ -30,7 +30,16 @@ type LoggedUser = {
   total_attended?: number;
   total_earnings?: number;
   hours_volunteered?: number;
+  profile_picture?: string;
+  national_id_front?: string;
+  national_id_back?: string;
+  is_id_verified?: number;
+  has_active_subscription?: number;
+  tier?: string;
+  logo_url?: string;
+  active_subscription?: any;
 };
+
 
 type ContextType = {
   data: LoggedUser | null;
@@ -75,9 +84,13 @@ export default function LoggedInDataProvider({ children }: Props) {
       // Try fetching as volunteer first
       try {
         const volunteerRes = await api.get("/volunteers/me");
+        let sub = null;
+        try { sub = (await api.get("/subscriptions/me")).data; } catch {}
+        
         setData({
           ...volunteerRes.data,
           role: "volunteer",
+          active_subscription: sub
         });
         return;
       } catch {}
@@ -85,9 +98,13 @@ export default function LoggedInDataProvider({ children }: Props) {
       // If not, try as company
       try {
         const companyRes = await api.get("/companies/me");
+        let sub = null;
+        try { sub = (await api.get("/subscriptions/me")).data; } catch {}
+
         setData({
           ...companyRes.data,
           role: "company",
+          active_subscription: sub
         });
         return;
       } catch {}

@@ -19,8 +19,21 @@ import {
   FaPhone,
   FaVenusMars,
   FaCalendarDay,
+  FaCrown,
+  FaCircleCheck,
 } from "react-icons/fa6";
 import Modal from "@/app/components/Modals/Modal";
+
+const calculateAge = (dob: string) => {
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+};
 
 type ApplicantStatus =
   | "pending"
@@ -38,8 +51,12 @@ type ApplicantItem = {
   first_name?: string;
   last_name?: string;
   email?: string;
+  profile_picture?: string;
   title?: string;
   user_rating?: number;
+  average_rating?: number;
+  has_active_subscription?: number;
+  is_id_verified?: number;
 };
 
 export default function Applicants() {
@@ -256,7 +273,9 @@ export default function Applicants() {
 
     return Object.entries(groups).map(([id, data]) => ({
       event_id: Number(id),
-      ...data
+      ...data,
+      // Sort subscribers to top within each group
+      apps: data.apps.sort((a, b) => (b.has_active_subscription || 0) - (a.has_active_subscription || 0))
     })).sort((a, b) => b.stats.pending - a.stats.pending); // Show opportunities with most pending applicants first
   }, [displayApplications]);
 
@@ -457,13 +476,38 @@ export default function Applicants() {
                               >
                                 <td className="px-4 py-4 font-bold">
                                   <div className="flex items-center justify-center gap-3">
-                                    <button
-                                      onClick={() => openApplicantModal(app.volunteer_id, app)}
-                                      className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/5 text-foreground transition hover:scale-110 active:scale-95 border border-foreground/10"
-                                    >
-                                      <FaUser size={12} />
-                                    </button>
-                                    <span className="truncate max-w-[120px]">{app.first_name} {app.last_name}</span>
+                                    <div className="relative">
+                                      <button
+                                        onClick={() => openApplicantModal(app.volunteer_id, app)}
+                                        className={`flex h-10 w-10 items-center justify-center rounded-full bg-foreground/5 text-foreground transition hover:scale-110 active:scale-95 border overflow-hidden ${
+                                          Number(app.has_active_subscription) > 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-foreground/10'
+                                        }`}
+                                      >
+                                        {app.profile_picture ? (
+                                          <img src={app.profile_picture} alt="Avatar" className="h-full w-full object-cover" />
+                                        ) : (
+                                          <FaUser size={14} />
+                                        )}
+                                      </button>
+                                      {Number(app.has_active_subscription) > 0 && (
+                                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-black shadow-md" title={lang === 'ar' ? 'مشترك ذهبي' : 'Gold Subscriber'}>
+                                          <FaCrown size={8} />
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-col items-start gap-1">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="truncate max-w-[120px]">{app.first_name} {app.last_name}</span>
+                                        {Number(app.is_id_verified) === 1 && (
+                                          <FaCircleCheck size={13} className="text-blue-500 shrink-0" title={lang === 'ar' ? 'هوية موثقة' : 'Verified ID'} />
+                                        )}
+                                      </div>
+                                      {app.average_rating && (
+                                        <div className="flex items-center gap-1 text-[10px] text-amber-500 font-bold">
+                                          <FaStar size={10} /> {app.average_rating}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </td>
                                 <td className="px-4 py-4 text-foreground/60">{app.email}</td>
@@ -551,10 +595,25 @@ export default function Applicants() {
         ) : selectedProfile ? (
           <div className="space-y-4 text-sm text-foreground/80" dir={lang === "ar" ? "rtl" : "ltr"}>
             <div className="flex flex-col items-center justify-center mb-6 mt-4 text-center">
-              <div className="h-24 w-24 bg-gradient-to-br from-foreground/80 to-foreground rounded-full flex items-center justify-center text-5xl text-background shadow-xl shadow-foreground/20 mb-4 border-4 border-background">
-                <FaUser />
+              <div className={`h-28 w-28 bg-gradient-to-br from-foreground/80 to-foreground rounded-full flex items-center justify-center text-5xl text-background shadow-xl shadow-foreground/20 mb-4 border-4 overflow-hidden ${
+                Number(selectedProfile.has_active_subscription) > 0 ? 'border-amber-400 ring-4 ring-amber-400/20' : 'border-background'
+              }`}>
+                {selectedProfile.profile_picture ? (
+                  <img src={selectedProfile.profile_picture} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  <FaUser />
+                )}
               </div>
-              <h3 className="text-2xl font-bold tracking-tight text-foreground">{selectedProfile.first_name} {selectedProfile.last_name}</h3>
+              <h3 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                {selectedProfile.first_name} {selectedProfile.last_name}
+                {Number(selectedProfile.has_active_subscription) > 0 && (
+                  <FaCrown className="text-amber-500" title={lang === 'ar' ? 'مشترك ذهبي' : 'Gold Subscriber'} />
+                )}
+                {Number(selectedProfile.is_id_verified) === 1 && (
+                  <FaUserCheck className="text-blue-500" title={lang === 'ar' ? 'هوية موثقة' : 'ID Verified'} />
+                )}
+              </h3>
+
               {selectedProfile.average_rating && (
                 <div className="mt-2 flex items-center justify-center gap-1.5 rounded-full bg-yellow-500/10 px-3 py-1 text-sm font-bold tracking-wide text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 w-max mx-auto">
                   {selectedProfile.average_rating} <FaStar size={14} className="mb-0.5" />
@@ -573,7 +632,15 @@ export default function Applicants() {
               <p className="flex items-center gap-3"><FaEnvelope className="text-foreground/50 text-lg" /> {selectedProfile.email}</p>
               {selectedProfile.phone && <p className="flex items-center gap-3"><FaPhone className="text-foreground/50 text-lg" /> {selectedProfile.phone}</p>}
               {selectedProfile.gender && <p className="flex items-center gap-3"><FaVenusMars className="text-foreground/50 text-lg" /> <span className="capitalize">{selectedProfile.gender}</span></p>}
-              {selectedProfile.date_of_birth && <p className="flex items-center gap-3"><FaCalendarDay className="text-foreground/50 text-lg" /> {new Date(selectedProfile.date_of_birth).toLocaleDateString()}</p>}
+              {selectedProfile.date_of_birth && (
+                <p className="flex items-center gap-3">
+                  <FaCalendarDay className="text-foreground/50 text-lg" /> 
+                  {new Date(selectedProfile.date_of_birth).toLocaleDateString()} 
+                  <span className="text-foreground/40 font-bold ml-1">
+                    ({calculateAge(selectedProfile.date_of_birth)} {lang === 'ar' ? 'سنة' : 'years'})
+                  </span>
+                </p>
+              )}
             </div>
 
             {selectedProfile.description && (

@@ -59,34 +59,42 @@ export default function VolunteerOpportunities() {
   };
 
   const filteredOpportunities = useMemo(() => {
-    return opportunities.filter((opportunity) => {
-      if (opportunity.is_deleted === 1) return false;
+    return opportunities
+      .filter((opportunity) => {
+        if (opportunity.is_deleted === 1) return false;
 
-      const searchableTitle = getLocalizedText(
-        opportunity.title_ar,
-        opportunity.title_en,
-        opportunity.title,
-        isArabic,
-        ""
-      ).toLowerCase().trim();
+        const searchableTitle = getLocalizedText(
+          opportunity.title_ar,
+          opportunity.title_en,
+          opportunity.title,
+          isArabic,
+          ""
+        ).toLowerCase().trim();
 
-      const matchesSearch = searchableTitle.includes(search.toLowerCase().trim());
-      const matchesStatus = status === "all" || opportunity.status === status;
-      const matchesType = type === "all" || opportunity.event_type === type;
+        const matchesSearch = searchableTitle.includes(search.toLowerCase().trim());
+        const matchesStatus = status === "all" || opportunity.status === status;
+        const matchesType = type === "all" || opportunity.event_type === type;
 
-      const matchesCapacity = (() => {
-        if (capacity === "all") return true;
-        if (capacity === "1-25") return opportunity.capacity >= 1 && opportunity.capacity <= 25;
-        if (capacity === "26-50") return opportunity.capacity >= 26 && opportunity.capacity <= 50;
-        if (capacity === "51-100") return opportunity.capacity >= 51 && opportunity.capacity <= 100;
-        if (capacity === "101-200") return opportunity.capacity >= 101 && opportunity.capacity <= 200;
-        return true;
-      })();
+        const matchesCapacity = (() => {
+          if (capacity === "all") return true;
+          if (capacity === "1-25") return opportunity.capacity >= 1 && opportunity.capacity <= 25;
+          if (capacity === "26-50") return opportunity.capacity >= 26 && opportunity.capacity <= 50;
+          if (capacity === "51-100") return opportunity.capacity >= 51 && opportunity.capacity <= 100;
+          if (capacity === "101-200") return opportunity.capacity >= 101 && opportunity.capacity <= 200;
+          return true;
+        })();
 
-      const matchesCategory = categoryId === "all" || String(opportunity.category_id) === categoryId;
+        const matchesCategory = categoryId === "all" || String(opportunity.category_id) === categoryId;
 
-      return matchesSearch && matchesStatus && matchesType && matchesCapacity && matchesCategory;
-    });
+        return matchesSearch && matchesStatus && matchesType && matchesCapacity && matchesCategory;
+      })
+      .sort((a, b) => {
+        // Sort by featured first, then by ID (newest first)
+        if (!!a.is_featured !== !!b.is_featured) {
+          return a.is_featured ? -1 : 1;
+        }
+        return b.id - a.id;
+      });
   }, [opportunities, search, status, type, capacity, categoryId, isArabic]);
 
   if (loading) {

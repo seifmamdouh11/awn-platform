@@ -25,6 +25,8 @@ export type Opportunity = {
   end_time: string;
   is_deleted: number;
   company_name?: string;
+  company_verified?: boolean | number;
   company_rating?: number;
   reward?: number;
+  is_featured?: boolean | number;
 };

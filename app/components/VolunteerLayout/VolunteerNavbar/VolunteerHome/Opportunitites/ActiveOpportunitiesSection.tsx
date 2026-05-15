@@ -9,6 +9,7 @@ import {
   FaCalendarDays,
   FaLocationDot,
   FaUsers,
+  FaStar
 } from "react-icons/fa6";
 import { useLang } from "@/app/Hooks/LangHook/LangHook";
 
@@ -24,6 +25,7 @@ type EventItem = {
   status?: "draft" | "open" | "closed" | "completed" | "cancelled" | string;
   start_time?: string | null;
   end_time?: string | null;
+  is_featured?: boolean | number;
 };
 
 const containerVariants = {
@@ -62,7 +64,11 @@ export default function ActiveOpportunitiesSection() {
         const res = await api.get(`/events?lang=${lang}`);
 
         const openEvents = (res.data || [])
-          .filter((event: EventItem) => event.status === "open")
+          .filter((event: any) => event.status === "open")
+          .sort((a: any, b: any) => {
+            if (!!a.is_featured !== !!b.is_featured) return a.is_featured ? -1 : 1;
+            return b.id - a.id;
+          })
           .slice(0, 3);
 
         setEvents(openEvents);
@@ -167,6 +173,13 @@ export default function ActiveOpportunitiesSection() {
                   <span className="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                     {t.open}
                   </span>
+
+                  {event.is_featured && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-[10px] font-black uppercase text-black shadow-lg shadow-amber-500/20">
+                      <FaStar size={10} />
+                      {lang === 'ar' ? 'مميز' : 'Featured'}
+                    </span>
+                  )}
                 </div>
 
                 <h3 className="mt-5 line-clamp-2 text-xl font-bold leading-8 text-foreground">

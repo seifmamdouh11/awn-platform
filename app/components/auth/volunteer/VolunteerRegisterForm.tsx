@@ -11,7 +11,8 @@ import Swal from "sweetalert2";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart } from "lucide-react";
+import { ArrowLeft, Heart, Camera, FileUp, X } from "lucide-react";
+
 
 type Gender = "male" | "female";
 
@@ -26,7 +27,11 @@ type FormValues = {
   national_id?: string;
   password: string;
   confirm_password: string;
+  profile_picture?: FileList;
+  national_id_front?: FileList;
+  national_id_back?: FileList;
 };
+
 
 export default function VolunteerRegisterForm() {
   const router = useRouter();
@@ -35,6 +40,13 @@ export default function VolunteerRegisterForm() {
 
   const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [previews, setPreviews] = useState<{
+    profile_picture?: string;
+    national_id_front?: string;
+    national_id_back?: string;
+  }>({});
+
 
   const maxDate = useMemo(() => {
     const today = new Date();
@@ -61,7 +73,12 @@ export default function VolunteerRegisterForm() {
   });
 
   const password = watch("password");
+  const profilePic = watch("profile_picture");
+  const idFront = watch("national_id_front");
+  const idBack = watch("national_id_back");
+
   const dir = lang === "ar" ? "rtl" : "ltr";
+
   const isRTL = lang === "ar";
 
   const inputBase =
@@ -82,19 +99,26 @@ export default function VolunteerRegisterForm() {
     setServerError(null);
     setLoading(true);
 
-    const { confirm_password, ...payload } = data;
+    const formData = new FormData();
+    
+    // Append text fields
+    Object.keys(data).forEach((key) => {
+      if (["profile_picture", "national_id_front", "national_id_back", "confirm_password"].includes(key)) return;
+      const value = (data as any)[key];
+      if (value !== undefined && value !== null) {
+        formData.append(key, value);
+      }
+    });
 
-    const cleanedPayload = {
-      ...payload,
-      last_name: payload.last_name?.trim() || null,
-      gender: payload.gender || null,
-      date_of_birth: payload.date_of_birth || null,
-      description: payload.description?.trim() || null,
-      national_id: payload.national_id?.trim() || null,
-    };
+    // Append files
+    if (data.profile_picture?.[0]) formData.append("profile_picture", data.profile_picture[0]);
+    if (data.national_id_front?.[0]) formData.append("national_id_front", data.national_id_front[0]);
+    if (data.national_id_back?.[0]) formData.append("national_id_back", data.national_id_back[0]);
 
     try {
-      await api.post("/volunteers/register", cleanedPayload);
+      await api.post("/volunteers/register", formData);
+
+
 
       await Swal.fire({
         title: t.successTitle,
@@ -235,6 +259,171 @@ export default function VolunteerRegisterForm() {
                 {serverError}
               </motion.div>
             )}
+
+            {/* Verification Documents */}
+            <motion.div
+              className="space-y-6"
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              <div className="border-t border-foreground/10 pt-5">
+                <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground/55">
+                  {t.sections.documents}
+                </h4>
+              </div>
+
+              {/* Profile Picture Upload */}
+              <div className="flex flex-col items-center gap-4 py-2">
+                <div className="relative group">
+                  <div className="h-28 w-28 rounded-full border-2 border-dashed border-foreground/20 bg-foreground/[0.03] flex items-center justify-center overflow-hidden transition-all group-hover:border-[#febc5a]/50">
+                    {previews.profile_picture ? (
+                      <img
+                        src={previews.profile_picture}
+                        alt="Profile Preview"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <Camera size={32} className="text-foreground/30" />
+                    )}
+                  </div>
+                  <label
+                    htmlFor="profile_picture"
+                    className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-[#febc5a] text-black flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform"
+                  >
+                    <FileUp size={16} />
+                  </label>
+                  <input
+                    id="profile_picture"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    {...register("profile_picture", {
+                      onChange: (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setPreviews((prev) => ({
+                            ...prev,
+                            profile_picture: URL.createObjectURL(file),
+                          }));
+                        }
+                      },
+                    })}
+                  />
+                </div>
+                <div className="text-center">
+                  <span className="text-sm font-semibold text-foreground/85">
+                    {t.formElements.profilePicture}
+                  </span>
+                  <p className="text-[11px] text-foreground/50 mt-1">
+                    {t.helper.documents}
+                  </p>
+                </div>
+              </div>
+
+              {/* National ID Front/Back */}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Front */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-foreground/85">
+                    {t.formElements.nationalIdFront}
+                  </label>
+                  <div
+                    className={`relative h-40 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all cursor-pointer overflow-hidden ${
+                      previews.national_id_front
+                        ? "border-green-500/50 bg-green-500/5"
+                        : "border-foreground/10 bg-foreground/[0.02] hover:border-[#febc5a]/40"
+                    }`}
+                    onClick={() => document.getElementById("national_id_front")?.click()}
+                  >
+                    {previews.national_id_front ? (
+                      <img
+                        src={previews.national_id_front}
+                        alt="ID Front"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <>
+                        <div className="h-10 w-10 rounded-full bg-foreground/5 flex items-center justify-center">
+                          <FileUp size={20} className="text-foreground/40" />
+                        </div>
+                        <span className="text-xs font-medium text-foreground/40 text-center px-4">
+                          {t.placeholders.uploadImage}
+                        </span>
+                      </>
+                    )}
+                    <input
+                      id="national_id_front"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      {...register("national_id_front", {
+                        onChange: (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setPreviews((prev) => ({
+                              ...prev,
+                              national_id_front: URL.createObjectURL(file),
+                            }));
+                          }
+                        },
+                      })}
+                    />
+                  </div>
+                </div>
+
+                {/* Back */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold text-foreground/85">
+                    {t.formElements.nationalIdBack}
+                  </label>
+                  <div
+                    className={`relative h-40 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all cursor-pointer overflow-hidden ${
+                      previews.national_id_back
+                        ? "border-green-500/50 bg-green-500/5"
+                        : "border-foreground/10 bg-foreground/[0.02] hover:border-[#febc5a]/40"
+                    }`}
+                    onClick={() => document.getElementById("national_id_back")?.click()}
+                  >
+                    {previews.national_id_back ? (
+                      <img
+                        src={previews.national_id_back}
+                        alt="ID Back"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <>
+                        <div className="h-10 w-10 rounded-full bg-foreground/5 flex items-center justify-center">
+                          <FileUp size={20} className="text-foreground/40" />
+                        </div>
+                        <span className="text-xs font-medium text-foreground/40 text-center px-4">
+                          {t.placeholders.uploadImage}
+                        </span>
+                      </>
+                    )}
+                    <input
+                      id="national_id_back"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      {...register("national_id_back", {
+                        onChange: (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setPreviews((prev) => ({
+                              ...prev,
+                              national_id_back: URL.createObjectURL(file),
+                            }));
+                          }
+                        },
+                      })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
 
             {/* Personal information */}
             <motion.div
@@ -587,7 +776,10 @@ export default function VolunteerRegisterForm() {
               </div>
             </motion.div>
 
+
+
             {/* Security */}
+
             <motion.div
               className="space-y-4"
               initial={{ opacity: 0, y: 18 }}
@@ -733,8 +925,10 @@ const translations = {
     sections: {
       personalInfo: "Personal information",
       contact: "Contact details",
+      documents: "Verification documents",
       security: "Security",
     },
+
     cardList: {
       volunteer: [
         "Create your profile in minutes",
@@ -756,9 +950,13 @@ const translations = {
       phone: "Phone",
       email: "Email",
       nationalId: "National ID",
+      profilePicture: "Profile picture",
+      nationalIdFront: "National ID (Front)",
+      nationalIdBack: "National ID (Back)",
       password: "Password",
       confirmPassword: "Confirm password",
     },
+
     gender: {
       male: "Male",
       female: "Female",
@@ -772,12 +970,16 @@ const translations = {
       nationalId: "Enter your 14-digit national ID",
       password: "Create a password",
       confirmPassword: "Re-enter your password",
+      uploadImage: "Click to upload image",
     },
+
     helper: {
       password:
         "8+ chars, include uppercase, lowercase, number, and special character.",
       dob: "Max allowed date (16+):",
+      documents: "Max size 5MB. Formats: JPG, PNG, WEBP",
     },
+
     errors: {
       required: "This field is required",
       invalidEmail: "Enter a valid email address",
@@ -809,8 +1011,10 @@ const translations = {
     sections: {
       personalInfo: "البيانات الشخصية",
       contact: "بيانات التواصل",
+      documents: "وثائق التحقق",
       security: "الأمان",
     },
+
     cardList: {
       volunteer: [
         "أنشئ ملفك الشخصي خلال دقائق",
@@ -832,9 +1036,13 @@ const translations = {
       phone: "رقم الهاتف",
       email: "البريد الإلكتروني",
       nationalId: "الرقم القومي",
+      profilePicture: "الصورة الشخصية",
+      nationalIdFront: "صورة البطاقة (أمام)",
+      nationalIdBack: "صورة البطاقة (خلف)",
       password: "كلمة المرور",
       confirmPassword: "تأكيد كلمة المرور",
     },
+
     gender: {
       male: "ذكر",
       female: "أنثى",
@@ -848,11 +1056,15 @@ const translations = {
       nationalId: "اكتب الرقم القومي المكون من 14 رقم",
       password: "أنشئ كلمة مرور",
       confirmPassword: "أعد كتابة كلمة المرور",
+      uploadImage: "اضغط لرفع الصورة",
     },
+
     helper: {
       password: "٨+ أحرف وتشمل حرف كبير وصغير ورقم ورمز.",
       dob: "أقصى تاريخ مسموح (16+):",
+      documents: "أقصى حجم ٥ ميجابايت. التنسيقات: JPG, PNG, WEBP",
     },
+
     errors: {
       required: "هذا الحقل مطلوب",
       invalidEmail: "اكتب بريد إلكتروني صحيح",
