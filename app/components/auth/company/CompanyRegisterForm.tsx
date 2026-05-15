@@ -41,7 +41,7 @@ export default function CompanyRegisterForm() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [docFile, setDocFile] = useState<File | null>(null);
 
-  const emailRegex = /^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/;
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/i;
   const phoneRegex = /^[0-9+\-\s]{8,20}$/;
   const strongPass = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
   const urlRegex =
